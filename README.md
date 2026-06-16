@@ -1,4 +1,4 @@
-# JobLensAI
+# JobLens AI
 
 AI-powered job description and resume analysis tool for software engineers.
 
@@ -28,7 +28,7 @@ The goal is not to fabricate experience, but to help candidates understand and p
 
 Job descriptions are often long, repetitive, and difficult to interpret.
 
-Same for me, I wanted to reduce the time and ambiguity involved in mapping my experience to Canadian software job descriptions.
+This project was also inspired by my own experience preparing for software engineering roles in Canada, where I needed to map existing experience to different job descriptions more clearly.
 
 Candidates may also struggle to understand which parts of their resume are most relevant for a specific role. The same experience can be positioned differently depending on whether the job is focused on backend development, full-stack engineering, platform work, product delivery, AI tools, or reliability.
 
