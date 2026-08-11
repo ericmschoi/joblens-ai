@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: joblens-backend
+
+server:
+  port: 8080
+  # Error bodies are produced exclusively by GlobalExceptionHandler as RFC 9457 problem details.
+  # The container defaults are suppressed so no stack trace or internal message can leak.
+  error:
+    whitelabel:
+      enabled: false
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+    include-exception: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+      access: read-only
+
+logging:
+  level:
+    root: INFO
+    com.joblens: INFO
+
+joblens:
+  cors:
+    # The local Vite dev server. Production origins are configured per environment.
+    allowed-origins:
+      - http://localhost:5173
+  analysis:
+    # "fake" is the only provider available today. It never leaves the local process,
+    # so the application runs end to end without any API key or outbound AI traffic.
+    provider: fake

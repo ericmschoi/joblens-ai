@@ -1,283 +1,211 @@
 # JobLens AI
 
-AI-powered job description and resume analysis tool for software engineers.
+Compare a resume with a job posting and get an evidence-based, explainable fit analysis.
 
-JobLensAI helps candidates understand how well their resume matches a specific job description by extracting role requirements, identifying skill gaps, and generating structured application insights.
+> **Status: Phase 1 of 13 — foundation.** The repository builds, tests and runs locally. Resume
+> extraction, job-posting extraction, analysis and the results UI are not implemented yet. Nothing
+> in this README describes behaviour that does not exist; unbuilt work is marked as planned.
 
-> Status: MVP design in progress
+## What it does
 
-## Overview
+JobLens AI answers four questions about one candidate and one role:
 
-JobLensAI is designed to analyze two inputs:
+1. How well does the candidate's documented experience match this role?
+2. What direct matches, transferable experience, gaps and unknowns support that conclusion?
+3. How should the candidate position their existing resume for this role, without inventing
+   experience?
+4. What should they prepare to explain in an interview?
 
-1. A job description
-2. A resume or candidate profile
+It is deliberately not a keyword-overlap tool. It separates required from preferred qualifications,
+a skill listed in a skills section from a skill demonstrated in real work, a direct match from
+transferable experience, a confirmed **gap** from an **unknown**, and how well the candidate fits
+the role from how attractive the opportunity is.
 
-Based on these inputs, the tool generates a structured analysis that helps candidates understand:
+## Planned user flow
 
-* What the role actually requires
-* Which parts of the resume match the role
-* Which skills or experiences are missing or weak
-* Which resume bullets should be emphasized
-* What interview topics the candidate should prepare
-* Whether the role is a strong, partial, or weak fit
+1. Upload a text-based PDF resume.
+2. Provide the job description as **either** a job URL **or** pasted text.
+3. Review and correct what was extracted from both documents. The version you confirm is what gets
+   analysed.
+4. Run the analysis.
+5. Read the score interpretation guide, then the overall match, six category ratings with evidence,
+   gaps, resume positioning advice and interview preparation.
 
-The goal is not to fabricate experience, but to help candidates understand and present their existing experience more clearly.
+The review step is mandatory by design. PDF layouts and job pages are extracted imperfectly, and you
+should be able to see and fix that before it distorts the result.
 
-## Why I’m Building This
+## Ratings
 
-Job descriptions are often long, repetitive, and difficult to interpret.
+Six weighted categories, each scored `0.0`–`5.0` to one decimal place.
 
-This project was also inspired by my own experience preparing for software engineering roles in Canada, where I needed to map existing experience to different job descriptions more clearly.
+| Category | Weight |
+|---|---:|
+| Core Technical Stack | 25% |
+| Role & Responsibility Alignment | 20% |
+| Experience Evidence | 15% |
+| Seniority & Ownership | 15% |
+| Required Qualification Coverage | 15% |
+| Domain & Operating Environment | 10% |
 
-Candidates may also struggle to understand which parts of their resume are most relevant for a specific role. The same experience can be positioned differently depending on whether the job is focused on backend development, full-stack engineering, platform work, product delivery, AI tools, or reliability.
+The total is computed from the six displayed category values, so the number on screen can always be
+recomputed by hand. A genuine gap in a core required qualification caps the total (3.4 for one,
+2.4 for two, 1.9 for three or more), and every applied cap is explained with the requirement that
+triggered it. An `UNKNOWN` never counts as a gap and never triggers a cap.
 
-JobLensAI aims to turn job descriptions and resumes into structured, actionable insights.
+The model does semantic work only — decomposing requirements, classifying importance, mapping
+evidence, judging match status. It never produces a score. All arithmetic, rounding and cap
+enforcement happens in the backend.
 
-This project also gives me a practical way to explore AI-assisted workflows, structured LLM outputs, and full-stack product development.
+Ratings describe documented fit. They are not predictions of whether you will be hired.
 
-## Core Workflow
+## Scope
 
-```text
-Job Description + Resume
-        ↓
-AI Analysis
-        ↓
-Structured Fit Report
-        ↓
-Resume Positioning + Skill Gaps + Interview Prep
+**In scope for the local MVP:** PDF resume upload and validation, text extraction with quality
+warnings, job description by URL or paste, public job page fetching behind a hardened URL boundary,
+editable extraction previews, structured normalization, evidence-based analysis behind a
+provider-neutral boundary, deterministic scoring, detailed category feedback, resume positioning,
+interview preparation, and full error and empty states.
+
+**Deferred:** OCR for scanned PDFs, DOCX and other formats, accounts, persistence, analysis history,
+comparing several jobs at once, Markdown or PDF export, payments, applying to jobs, live company
+research, user preference profiles, and any language other than English.
+
+## Tech stack
+
+| Layer | Choice |
+|---|---|
+| Backend | Java 25 LTS (Temurin 25.0.4+7), Spring Boot 4.1.0, Gradle 9.7.0 (Kotlin DSL) |
+| Frontend | Node.js 24.19.0 LTS, React 19.2.8, TypeScript 6.0.3, Vite 8.2.1, CSS Modules + design tokens |
+| Extraction | Apache PDFBox, Jsoup, Playwright for Java as a controlled fallback *(planned)* |
+| AI | Provider-neutral boundary; deterministic in-process fake is the default. No provider chosen yet. |
+| Testing | JUnit 5, ArchUnit, Vitest, Testing Library, axe-core |
+
+Every version is pinned and justified in [docs/versions.md](docs/versions.md), including the one
+deliberate deviation from "newest stable" (TypeScript 6.0.3 rather than 7.0.2, because
+typescript-eslint does not support TypeScript 7 yet).
+
+Choosing a runtime AI provider and choosing hosting infrastructure are independent decisions. Both
+are deferred until the relevant phase.
+
+## Getting started
+
+### Prerequisites
+
+- **JDK 25** — Eclipse Temurin 25.0.4+7 or newer 25.x. Check with `java -version`.
+- **Node.js 24.19.0 LTS or newer 24.x** with npm 11.17.0. Check with `node --version`.
+- macOS, Linux or Windows. The helper scripts assume a POSIX shell.
+
+Gradle itself is not required; the committed wrapper downloads the correct version.
+
+### Run it
+
+```bash
+./scripts/dev.sh
 ```
 
-## Planned Features
+The backend starts on <http://localhost:8080> and the frontend dev server on
+<http://localhost:5173>, which proxies `/api` to the backend.
 
-### 1. Job Description Analysis
+Run them separately if you prefer:
 
-Extract key information from a job posting:
-
-* Required technical skills
-* Preferred qualifications
-* Main responsibilities
-* Seniority level signals
-* Product or domain context
-* Engineering focus areas
-* Keywords likely to matter during screening
-
-Example engineering focus areas:
-
-* Backend APIs
-* Frontend development
-* Full-stack product delivery
-* Platform engineering
-* Cloud and infrastructure
-* Reliability and monitoring
-* AI-assisted tools
-* Data or analytics workflows
-
-### 2. Resume Analysis
-
-Parse a resume or candidate profile and identify:
-
-* Technical skills
-* Work experience
-* Project experience
-* Domain experience
-* Leadership or ownership signals
-* Reliability, collaboration, and delivery signals
-* Missing or under-explained areas
-
-### 3. Resume-to-JD Fit Review
-
-Compare the job description with the resume and generate:
-
-* Strong matches
-* Partial matches
-* Weak or missing areas
-* Relevant resume bullets
-* Experience that should be emphasized
-* Experience that may need clearer wording
-
-### 4. Skill Gap Summary
-
-Identify preparation priorities before applying.
-
-Possible categories:
-
-* Technical skills to review
-* Tools or frameworks to learn
-* Domain knowledge to understand
-* Interview topics to prepare
-* Portfolio gaps to improve
-
-### 5. Resume Positioning Suggestions
-
-Suggest how the candidate could better position their existing experience for the role.
-
-The tool should help answer:
-
-* Which resume bullets are most relevant?
-* Which keywords should be reflected naturally?
-* Which experience should be emphasized?
-* Is this role more backend, frontend, full-stack, platform, product, or AI-focused?
-* What should the candidate avoid overemphasizing?
-
-### 6. Interview Preparation Notes
-
-Generate interview preparation notes based on the job description and resume.
-
-Planned output:
-
-* Likely behavioral questions
-* Likely technical topics
-* Project stories to prepare
-* STAR answer angles
-* Gaps the interviewer may ask about
-* Questions the candidate could ask the interviewer
-
-### 7. Application Decision Support
-
-Summarize whether the role is worth applying to.
-
-Planned output:
-
-* Fit level
-* Main strengths
-* Main risks
-* Preparation priorities
-* Recommended next action
-
-## Example Input
-
-### Job Description
-
-```text
-We are looking for a Full-Stack Software Engineer with experience building customer-facing web applications. The role involves backend API development, frontend implementation, cross-functional collaboration, and improving production reliability.
+```bash
+cd backend && ./gradlew bootRun
 ```
 
-### Resume Summary
-
-```text
-Software engineer with experience in Java/Spring Boot, React, TypeScript, REST APIs, partner integrations, customer-facing workflows, reusable UI components, and post-launch issue resolution.
+```bash
+cd frontend && npm ci && npm run dev
 ```
 
-## Example Output
+### Verify a change
 
-```text
-Role Summary:
-This role is focused on full-stack web development, backend API implementation, frontend delivery, and production reliability.
-
-Key Requirements:
-- Backend API development
-- Frontend implementation
-- Customer-facing web application experience
-- Cross-functional collaboration
-- Production troubleshooting
-
-Strong Matches:
-- Java/Spring Boot backend experience
-- React/TypeScript frontend experience
-- REST API development
-- Partner integration experience
-- Customer-facing workflow experience
-- Post-launch reliability improvements
-
-Partial Matches:
-- Cloud or deployment experience is not clearly shown
-- System design experience may need stronger evidence
-
-Recommended Resume Emphasis:
-- Full-stack delivery across backend APIs and frontend UI
-- Customer-facing workflow development
-- Partner-integrated feature launches
-- Reusable UI patterns
-- Post-launch issue resolution and reliability improvements
-
-Skill Gap Priorities:
-1. Prepare examples of production troubleshooting
-2. Review system design basics for web applications
-3. Clarify cloud, deployment, or infrastructure experience if relevant
-4. Prepare a strong project story about cross-functional collaboration
-
-Application Recommendation:
-Good fit. Apply with a tailored resume emphasizing full-stack delivery, customer-facing systems, and reliability.
+```bash
+./scripts/test-all.sh
 ```
 
-## MVP Scope
+That runs the backend build and tests, then the frontend typecheck, lint, tests and production
+build. Individually:
 
-The first MVP will focus on a simple flow:
+```bash
+cd backend && ./gradlew build
+```
 
-1. Paste a job description
-2. Paste a resume or candidate profile
-3. Generate structured analysis
-4. Show fit summary, skill gaps, and resume positioning suggestions
-5. Export the result as Markdown
+```bash
+cd frontend && npm run typecheck && npm run lint && npm test && npm run build
+```
 
-The MVP will prioritize useful analysis and clear output structure over complex UI.
+### Environment variables
 
-## Planned Tech Stack
+None are required today. The default analysis provider is an in-process fake, so the application
+runs end to end with no API key and no outbound AI traffic. When a real provider is added, its
+credentials will come from environment variables or a secret manager, never from the repository and
+never from the client bundle.
 
-This may change as the project evolves.
+## Testing approach
 
-* Frontend: React, TypeScript
-* Backend: Node.js or Spring Boot
-* AI: LLM API with structured prompting
-* Output format: JSON and Markdown
-* Deployment: TBD
+Tests use fixtures rather than live third-party pages, so the suite is repeatable. Resume PDF
+fixtures will be generated programmatically at test time — one-column, two-column, design-heavy,
+multi-page with repeated headers, encrypted, image-only, corrupt, and size and page-count
+boundaries — which keeps real personal documents out of the repository entirely. Job page fixtures
+will be saved, version-tagged HTML for representative applicant tracking systems. Any test that
+needs the live internet is tagged separately and excluded from the default run.
 
-## Data and Privacy Notes
+Security tests are first-class: SSRF cases, unsafe redirect chains, malicious HTML, PDF edge cases,
+prompt-injection strings embedded in documents, adversarial model output, and checks that document
+content never reaches the logs.
 
-This project will use sample resumes, synthetic job descriptions, and publicly available job postings for testing.
+Accessibility is tested rather than assumed. Component tests run axe-core, colour contrast is
+computed directly from the design tokens for both light and dark schemes, and keyboard interaction
+is exercised with user-event.
 
-A personal resume may be used as one validation sample, but the product is designed as a general-purpose tool for software engineering candidates.
+## Privacy and security
 
-No private company data, confidential documents, or sensitive personal information will be included in the public repository.
+- No database. Resumes and job postings are never written to permanent storage.
+- Document content never appears in logs, metrics labels or exception traces.
+- Personal identifiers that analysis does not need — email, phone, street address — are redacted
+  before any external AI call. Career evidence is preserved.
+- Fetching an arbitrary URL is treated as a high-risk operation and runs behind a dedicated
+  validation boundary: scheme and credential checks, DNS resolution validated before connecting,
+  private, loopback, link-local and cloud-metadata addresses blocked for IPv4 and IPv6, every
+  redirect re-validated, strict timeouts, a response size cap and a content-type allowlist. No
+  cookies, authorization headers or browser session state are ever forwarded.
+- `robots.txt` is respected. JobLens does not work around login walls, CAPTCHAs or access controls;
+  it asks you to paste the job description instead.
+- Model output is validated against a schema before use, and quoted resume evidence is checked
+  against the submitted resume text so fabricated quotes cannot reach the results page.
 
 ## Roadmap
 
-### Phase 1: Product Design
+| Phase | Work | State |
+|---|---|---|
+| 1 | Repository foundation, error contract, provider boundary, local scripts | **Done** |
+| 2 | Secure PDF validation and extraction, resume preview contract | Planned |
+| 3 | Pasted job description extraction and normalization | Planned |
+| 4 | Safe URL fetching, JSON-LD and ATS extraction, browser fallback | Planned |
+| 5 | Versioned analysis schema, provider boundary, prompt assets, output validation | Planned |
+| 6 | Evidence mapping and the deterministic score calculator | Planned |
+| 7 | Upload, job input and extraction-review UI | Planned |
+| 8 | Results UI: score guide, accessible decimal stars, evidence, guidance | Planned |
+| 9 | End-to-end hardening, calibration fixtures, documentation | Planned |
+| 10 | Real AI provider evaluation, then a single adapter | Planned |
+| 11 | Docker packaging | Planned |
+| 12 | GitHub Actions CI/CD | Planned |
+| 13 | AWS architecture and deployment | Planned |
 
-* Define core workflow
-* Create sample job descriptions
-* Create sample resume profiles
-* Design structured AI output schema
-* Write README and planning documentation
+## Why I am building this
 
-### Phase 2: MVP Prototype
+Job descriptions are long, repetitive and hard to interpret, and the same experience should be
+presented differently depending on whether a role is backend, full-stack, platform, product or
+reliability focused. This project came out of preparing for software engineering roles in Canada and
+needing to map existing experience onto specific postings more clearly.
 
-* Build basic input form
-* Connect AI API
-* Generate job description analysis
-* Generate resume-to-JD fit report
-* Display structured results
+It is also a way to work through AI-assisted product engineering properly: structured model output,
+explainable scoring, and security boundaries around file upload, arbitrary URL fetching and external
+model calls.
 
-### Phase 3: Resume Matching Improvements
+The goal is never to fabricate experience. It is to understand and present real experience clearly.
 
-* Improve skill extraction
-* Add fit scoring logic
-* Add resume bullet recommendation
-* Add interview preparation notes
-* Add Markdown export
+## Notes on data
 
-### Phase 4: Product Polish
-
-* Improve UI
-* Add saved analysis history
-* Add example demo cases
-* Add portfolio case study
-* Deploy MVP
-
-## What I Want to Demonstrate
-
-Through this project, I want to demonstrate:
-
-* Practical AI product thinking
-* Full-stack product development
-* Structured LLM output design
-* Resume and job-market workflow automation
-* Ability to turn an ambiguous real-world problem into a usable tool
-* Clear technical communication through documentation
-
-## Notes
-
-JobLensAI is currently in the planning and MVP design stage.
-
-The tool is intended to support honest resume analysis, job search strategy, and interview preparation. It is not designed to fabricate experience or generate misleading application materials.
+Testing uses synthetic resumes and job descriptions plus publicly available postings. A personal
+resume may be used as a manual validation sample locally, but is never committed. No private company
+data, confidential documents or personal information belongs in this repository.

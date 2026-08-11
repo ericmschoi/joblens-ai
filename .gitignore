@@ -1,0 +1,31 @@
+# macOS
+.DS_Store
+
+# Node
+node_modules/
+dist/
+coverage/
+*.local
+
+# Gradle and Java
+.gradle/
+build/
+# The Gradle wrapper is committed on purpose so that every machine and CI runner
+# uses the same Gradle version. Do not add a *.jar ignore rule above this line.
+!gradle/wrapper/gradle-wrapper.jar
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Editors
+.idea/
+*.iml
+.vscode/
+
+# Local documents used for manual smoke testing only.
+# Real resumes are personal data and must never be committed. Test fixtures are
+# generated programmatically instead - see docs/testing notes in the README.
+*.pdf
+/local-fixtures/
