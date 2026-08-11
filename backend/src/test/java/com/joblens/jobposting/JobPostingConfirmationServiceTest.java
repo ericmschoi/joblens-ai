@@ -11,6 +11,7 @@ import com.joblens.error.ApiException;
 import com.joblens.error.ErrorCode;
 import com.joblens.jobposting.model.JobPosting;
 import com.joblens.testsupport.JobPostingFixtures;
+import com.joblens.testsupport.JobPostingServices;
 import com.joblens.testsupport.TestProperties;
 import java.time.Clock;
 import java.time.Instant;
@@ -27,8 +28,7 @@ class JobPostingConfirmationServiceTest {
     private final JobPostingConfirmationService service = new JobPostingConfirmationService(
             TestProperties.defaults(), fingerprints, Clock.fixed(NOW, ZoneOffset.UTC));
 
-    private final JobPostingExtractionService extraction = new JobPostingExtractionService(
-            TestProperties.defaults(), new JobPostingTextNormalizer(), new JobPostingParser());
+    private final JobPostingExtractionService extraction = JobPostingServices.pasteOnly(TestProperties.defaults());
 
     private JobPostingExtractionResult extracted(String pasted) {
         return extraction.extractFromText(pasted);

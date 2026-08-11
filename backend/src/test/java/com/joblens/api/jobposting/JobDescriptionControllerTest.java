@@ -75,17 +75,6 @@ class JobDescriptionControllerTest {
                     .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
         }
 
-        @Test
-        void explainsThatJobUrlsCannotBeReadYetAndPointsAtPasting() throws Exception {
-            ObjectNode request = objectMapper.createObjectNode();
-            request.put("url", "https://example.com/jobs/1");
-
-            extract(objectMapper.writeValueAsString(request))
-                    .andExpect(status().isServiceUnavailable())
-                    .andExpect(jsonPath("$.code").value("JD_URL_MODE_UNAVAILABLE"))
-                    .andExpect(jsonPath("$.recoveryAction")
-                            .value(org.hamcrest.Matchers.containsString("Paste Job Description")));
-        }
 
         @Test
         void rejectsTextTooShortToDescribeARole() throws Exception {

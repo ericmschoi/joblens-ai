@@ -47,6 +47,17 @@ joblens:
     # Shorter than this and there is nothing meaningful to compare a resume against.
     min-text-characters: 200
     max-text-characters: 40000
+  job-fetch:
+    # Fetching a user-supplied URL from the server is the highest-risk capability in the product.
+    # Every value here is a containment boundary, not a tuning knob.
+    connect-timeout: 2s
+    response-timeout: 5s
+    total-timeout: 10s
+    max-response-bytes: 2097152     # 2 MiB, enforced while streaming
+    max-redirects: 3
+    allowed-ports: [80, 443]
+    max-concurrent-fetches: 4
+    user-agent: JobLensBot/0.1 (+https://joblens.local/bot)
   cors:
     # The local Vite dev server. Production origins are configured per environment.
     allowed-origins:
