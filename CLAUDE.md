@@ -27,7 +27,12 @@ which is the source of truth for scope. This file records how to work in the rep
    metrics labels.
 6. **`UNKNOWN` is not `GAP`.** Missing information is not evidence of absence and never triggers a
    score ceiling.
-7. **Do not invent experience.** No suggestion may add a technology, metric, employer, credential or
+7. **Unreviewed parsing is not evidence.** Extraction always returns `REVIEW_REQUIRED`; only
+   `POST /api/v1/resumes/confirm` produces a confirmed resume. Absent evidence may be judged `GAP`
+   only when `ResumeEvidenceReliability.policyFor(...)` returns `MAY_BE_GAP`. Anything else is
+   `UNKNOWN` and cannot trigger a critical-gap ceiling. Scoring consumes the confirmed
+   representation, never the extraction output, and verifies its `contentFingerprint`.
+8. **Do not invent experience.** No suggestion may add a technology, metric, employer, credential or
    achievement that is not in the resume.
 
 ## Versions

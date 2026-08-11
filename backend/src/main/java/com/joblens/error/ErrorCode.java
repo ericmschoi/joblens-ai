@@ -62,6 +62,9 @@ public enum ErrorCode {
     RESUME_TEXT_TOO_SHORT(HttpStatus.UNPROCESSABLE_CONTENT,
             "Not enough resume text could be read",
             "Check that the PDF contains selectable text, or paste the content into a new PDF."),
+    REVIEW_NOT_CONFIRMED(HttpStatus.BAD_REQUEST,
+            "The reviewed content has not been confirmed",
+            "Review the extracted resume and confirm it before running an analysis."),
 
     // --- Job description input --------------------------------------------------------------
     JD_INPUT_AMBIGUOUS(HttpStatus.BAD_REQUEST,

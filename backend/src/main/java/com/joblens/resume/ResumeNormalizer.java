@@ -52,6 +52,12 @@ public class ResumeNormalizer {
     private static final Pattern SKILL_SEPARATOR = Pattern.compile("[,;|\\u2022\\u00B7/]");
     private static final int MAX_HEADING_LENGTH = 40;
 
+    /** A name and a line or two of contact details above the first heading are normal, not stray text. */
+    private static final int HEADER_LINE_ALLOWANCE = 3;
+
+    /** Below this, stray lines are noise rather than a signal that the structure is incomplete. */
+    private static final int UNASSIGNED_LINE_THRESHOLD = 3;
+
     private static final List<String> CREDENTIAL_KEYWORDS = List.of(
             "bachelor", "master", "b.sc", "bsc", "b.a", "b.eng", "beng", "m.sc", "msc", "mba",
             "ph.d", "phd", "doctorate", "diploma", "certificate", "associate", "degree");
@@ -69,7 +75,9 @@ public class ResumeNormalizer {
             warnings.add(ExtractionWarning.of(WarningCode.NO_SECTIONS_DETECTED));
         }
 
-        List<WorkExperience> experiences = readExperiences(sections.getOrDefault(Section.EXPERIENCE, List.of()));
+        ExperienceParse experienceParse =
+                readExperiences(sections.getOrDefault(Section.EXPERIENCE, List.of()));
+        List<WorkExperience> experiences = experienceParse.experiences();
         List<Project> projects = readProjects(sections.getOrDefault(Section.PROJECTS, List.of()));
 
         List<SkillMention> skills = new ArrayList<>(
@@ -83,6 +91,17 @@ public class ResumeNormalizer {
                 readEducation(sections.getOrDefault(Section.EDUCATION, List.of())),
                 projects,
                 readCertifications(sections.getOrDefault(Section.CERTIFICATIONS, List.of())));
+
+        // Text that reached no section and no role is invisible in the structured view even though
+        // it is still in the raw text, so the user is told how much of it there is.
+        int strayHeaderLines = Math.max(0,
+                sections.getOrDefault(Section.NONE, List.of()).size() - HEADER_LINE_ALLOWANCE);
+        int unassigned = experienceParse.unassignedLines() + strayHeaderLines;
+        if (unassigned >= UNASSIGNED_LINE_THRESHOLD) {
+            warnings.add(ExtractionWarning.counted(WarningCode.UNASSIGNED_TEXT_BLOCKS, unassigned));
+        }
+
+        warnings.addAll(ResumeStructureWarnings.forProfile(profile));
 
         return new NormalizedResume(profile, warnings);
     }
@@ -165,9 +184,13 @@ public class ResumeNormalizer {
         return List.copyOf(unique.values());
     }
 
-    private static List<WorkExperience> readExperiences(List<Line> lines) {
+    /** @param unassignedLines lines in the experience section that ended up in no role at all */
+    private record ExperienceParse(List<WorkExperience> experiences, int unassignedLines) {}
+
+    private static ExperienceParse readExperiences(List<Line> lines) {
         List<Integer> anchors = anchorIndexes(lines);
         List<WorkExperience> experiences = new ArrayList<>();
+        boolean[] assigned = new boolean[lines.size()];
 
         for (int a = 0; a < anchors.size(); a++) {
             int anchor = anchors.get(a);
@@ -181,9 +204,15 @@ public class ResumeNormalizer {
             }
 
             Header header = parseHeader(headerLine.stripped(), previousLine);
+            assigned[anchor] = true;
+            if (previousLine != null && anchor > 0) {
+                assigned[anchor - 1] = true;
+            }
+
             List<String> bullets = new ArrayList<>();
             for (int i = anchor + 1; i < consumedEnd; i++) {
                 bullets.add(lines.get(i).stripped());
+                assigned[i] = true;
             }
 
             experiences.add(new WorkExperience(
@@ -196,7 +225,14 @@ public class ResumeNormalizer {
                     Provenance.of(null, "EXPERIENCE", headerLine.index(), lastIndex(lines, consumedEnd, headerLine),
                             headerLine.text().strip())));
         }
-        return experiences;
+
+        int unassigned = 0;
+        for (boolean covered : assigned) {
+            if (!covered) {
+                unassigned++;
+            }
+        }
+        return new ExperienceParse(experiences, unassigned);
     }
 
     private static List<Education> readEducation(List<Line> lines) {

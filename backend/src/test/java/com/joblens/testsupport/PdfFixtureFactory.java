@@ -228,6 +228,32 @@ public final class PdfFixtureFactory {
         });
     }
 
+    /**
+     * Plenty of readable text, but written as prose with no headings a parser can recognise.
+     * Structured parsing produces nothing; the raw text must survive intact regardless.
+     */
+    public static byte[] unstructuredProse() {
+        List<String> prose = List.of(
+                "Alex Morgan is a software engineer based in Toronto who has spent the last six",
+                "years building customer-facing web applications and the services behind them.",
+                "Most recently at Northwind Systems, designing a payments service in Java that",
+                "handles several thousand requests each minute, and rebuilding the partner",
+                "onboarding experience in React and TypeScript. Before that, at Lakeshore Digital,",
+                "building REST APIs for a logistics platform and moving reporting queries onto",
+                "PostgreSQL, which took dashboard load times from nine seconds to just over one.",
+                "Studied computer science at the University of Waterloo, graduating in 2018.",
+                "Comfortable owning a feature from requirements through release and production",
+                "support, and has carried the on-call pager for a billing domain for three years.");
+
+        return build(document -> {
+            PDPage page = new PDPage(PDRectangle.LETTER);
+            document.addPage(page);
+            try (PDPageContentStream content = new PDPageContentStream(document, page)) {
+                writeLines(content, HELVETICA, 10.5f, 54, 700, 14, prose);
+            }
+        });
+    }
+
     /** A readable PDF whose text is far below the usable minimum. */
     public static byte[] almostEmpty() {
         return build(document -> {
