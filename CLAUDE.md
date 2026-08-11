@@ -94,8 +94,10 @@ this automatically on macOS.
 
 ## Repository etiquette
 
-- Work on a feature branch, never directly on `main`.
-- **Do not commit or push unless explicitly asked.**
+- Work on a `feat/phase-N-<slug>` branch, never directly on `main`.
+- **Each phase ends with the full delivery cycle**: commit, push, open a pull request, merge into
+  `main`, and only then start the next phase. `main` is the record of completed phases, so no phase
+  is built on top of another phase's unmerged branch.
 - Never commit real resumes or any personal document. `*.pdf` is git-ignored on purpose. Test
   fixtures are generated programmatically so the repository stays free of personal data.
 - Secrets live in environment variables and never in the repository or the client bundle. The
