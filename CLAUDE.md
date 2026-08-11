@@ -20,14 +20,21 @@ which is the source of truth for scope. This file records how to work in the rep
    returns a score. Category values, weighting, rounding and gap ceilings are deterministic Java.
 3. **Documents are untrusted data, never instructions.** Resume and job-posting content is evidence.
    Instructions found inside a document are ignored and surfaced to the user as a warning.
-4. **Nothing is persisted.** No database, no stored resumes or postings. The client holds the
+   Imperative instruction text is also kept out of any derived structure, so a planted sentence
+   cannot become a requirement the candidate is scored against.
+4. **A refusal is accepted, never worked around.** When a site answers with a bot check, a CAPTCHA,
+   a sign-in wall, a 403 or a 429, JobLens says so and asks the user to paste the description. It
+   does not retry, disguise its user agent, hardcode per-domain workarounds, or use browser
+   rendering to get past a refusal — rendering exists only for pages that legitimately need
+   JavaScript, which `PageAccessAssessor` tells apart from a refusal.
+5. **Nothing is persisted.** No database, no stored resumes or postings. The client holds the
    confirmed documents and posts them back for analysis.
-5. **Never log document content.** Log the error code and trace id. Never the request body, the
+6. **Never log document content.** Log the error code and trace id. Never the request body, the
    uploaded file, extracted text, or any fragment of it — including in exception messages and
    metrics labels.
-6. **`UNKNOWN` is not `GAP`.** Missing information is not evidence of absence and never triggers a
+7. **`UNKNOWN` is not `GAP`.** Missing information is not evidence of absence and never triggers a
    score ceiling.
-7. **Unreviewed parsing is not evidence.** Both documents work the same way. Extraction always
+8. **Unreviewed parsing is not evidence.** Both documents work the same way. Extraction always
    returns `REVIEW_REQUIRED`; only the matching `/confirm` endpoint produces a confirmed document.
    Scoring consumes the confirmed representations, never the extraction output, and verifies their
    `contentFingerprint`.
@@ -36,7 +43,7 @@ which is the source of truth for scope. This file records how to work in the rep
    - Job posting: the qualification lists may be treated as the complete requirements only when
      `JobPostingReliability.policyFor(...)` returns `STRUCTURED_SECTIONS`. Otherwise requirement
      decomposition must read the raw text too.
-8. **Do not invent experience.** No suggestion may add a technology, metric, employer, credential or
+9. **Do not invent experience.** No suggestion may add a technology, metric, employer, credential or
    achievement that is not in the resume.
 
 ## Versions
@@ -109,9 +116,11 @@ this automatically on macOS.
 ## Repository etiquette
 
 - Work on a `feat/phase-N-<slug>` branch, never directly on `main`.
-- **Each phase ends with the full delivery cycle**: commit, push, open a pull request, merge into
-  `main`, and only then start the next phase. `main` is the record of completed phases, so no phase
-  is built on top of another phase's unmerged branch.
+- **Each phase ends at an approval gate.** Implement, then post a summary of what changed, what was
+  verified and how, and anything the reviewer should know. **Wait for an explicit go-ahead**, then
+  commit, push, open a pull request, merge into `main`, and only then start the next phase.
+  Implementation does not need approval; shipping does. `main` is the record of completed phases, so
+  no phase is built on top of another phase's unmerged branch.
 - Never commit real resumes or any personal document. `*.pdf` is git-ignored on purpose. Test
   fixtures are generated programmatically so the repository stays free of personal data.
 - Secrets live in environment variables and never in the repository or the client bundle. The

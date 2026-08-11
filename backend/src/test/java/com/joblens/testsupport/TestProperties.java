@@ -1,6 +1,7 @@
 package com.joblens.testsupport;
 
 import com.joblens.config.JoblensProperties;
+import java.time.Duration;
 import java.util.List;
 
 /** Configuration for unit tests, mirroring the defaults in {@code application.yml}. */
@@ -22,11 +23,27 @@ public final class TestProperties {
     public static final int MAX_JOB_TEXT_CHARACTERS = 40_000;
 
     public static JoblensProperties withResume(JoblensProperties.Resume resume) {
-        return build(resume, defaultJobPosting());
+        return build(resume, defaultJobPosting(), defaultJobFetch());
     }
 
     public static JoblensProperties withJobPosting(JoblensProperties.JobPosting jobPosting) {
-        return build(defaultResume(), jobPosting);
+        return build(defaultResume(), jobPosting, defaultJobFetch());
+    }
+
+    public static JoblensProperties withJobFetch(JoblensProperties.JobFetch jobFetch) {
+        return build(defaultResume(), defaultJobPosting(), jobFetch);
+    }
+
+    public static JoblensProperties.JobFetch defaultJobFetch() {
+        return new JoblensProperties.JobFetch(
+                Duration.ofSeconds(2),
+                Duration.ofSeconds(5),
+                Duration.ofSeconds(10),
+                2L * 1024 * 1024,
+                3,
+                List.of(80, 443),
+                4,
+                "JobLensBot/0.1 (+https://joblens.local/bot)");
     }
 
     public static JoblensProperties.Resume defaultResume() {
@@ -39,10 +56,11 @@ public final class TestProperties {
     }
 
     private static JoblensProperties build(JoblensProperties.Resume resume,
-            JoblensProperties.JobPosting jobPosting) {
+            JoblensProperties.JobPosting jobPosting, JoblensProperties.JobFetch jobFetch) {
         return new JoblensProperties(
                 resume,
                 jobPosting,
+                jobFetch,
                 new JoblensProperties.Cors(List.of("http://localhost:5173")),
                 new JoblensProperties.Analysis("fake"));
     }

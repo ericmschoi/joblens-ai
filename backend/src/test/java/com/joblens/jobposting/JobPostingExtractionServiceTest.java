@@ -8,13 +8,13 @@ import com.joblens.document.ReviewStatus;
 import com.joblens.error.ApiException;
 import com.joblens.error.ErrorCode;
 import com.joblens.testsupport.JobPostingFixtures;
+import com.joblens.testsupport.JobPostingServices;
 import com.joblens.testsupport.TestProperties;
 import org.junit.jupiter.api.Test;
 
 class JobPostingExtractionServiceTest {
 
-    private final JobPostingExtractionService service = new JobPostingExtractionService(
-            TestProperties.defaults(), new JobPostingTextNormalizer(), new JobPostingParser());
+    private final JobPostingExtractionService service = JobPostingServices.pasteOnly(TestProperties.defaults());
 
     @Test
     void readsAPastedPostingIntoStructuredLists() {
@@ -54,9 +54,7 @@ class JobPostingExtractionServiceTest {
 
     @Test
     void rejectsTextBeyondTheProcessingLimit() {
-        JobPostingExtractionService constrained = new JobPostingExtractionService(
-                TestProperties.withJobPosting(new JoblensProperties.JobPosting(10, 100)),
-                new JobPostingTextNormalizer(), new JobPostingParser());
+        JobPostingExtractionService constrained = JobPostingServices.pasteOnly(TestProperties.withJobPosting(new JoblensProperties.JobPosting(10, 100)));
 
         assertThatThrownBy(() -> constrained.extractFromText(JobPostingFixtures.WELL_STRUCTURED))
                 .isInstanceOf(ApiException.class)
@@ -64,16 +62,4 @@ class JobPostingExtractionServiceTest {
                 .isEqualTo(ErrorCode.JD_TEXT_TOO_LONG);
     }
 
-    @Test
-    void saysPlainlyThatReadingAJobUrlIsNotAvailableYet() {
-        assertThatThrownBy(() -> service.extractFromUrl("https://example.com/jobs/1"))
-                .isInstanceOf(ApiException.class)
-                .satisfies(error -> {
-                    ApiException failure = (ApiException) error;
-                    assertThat(failure.errorCode()).isEqualTo(ErrorCode.JD_URL_MODE_UNAVAILABLE);
-                    assertThat(failure.errorCode().recoveryAction())
-                            .as("the user needs a way forward, not just a refusal")
-                            .contains("Paste Job Description");
-                });
-    }
 }

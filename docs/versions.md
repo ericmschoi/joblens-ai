@@ -28,11 +28,17 @@ Java 26 and Node.js 26 exist but are not LTS, so they are not used as project ru
 | Library | Version | Added in |
 |---|---|---|
 | Apache PDFBox | 3.0.8 | Phase 2 |
+| jsoup | 1.23.1 | Phase 4a |
+| Apache HttpClient 5 | 5.6.1 (BOM-managed, declared without a version) | Phase 4a |
 | ArchUnit (JUnit 5) | 1.5.0 | Phase 1 |
 
 JUnit, AssertJ, Jackson, Tomcat, Logback and Apache HttpClient are managed by the Spring Boot BOM and
 must not be pinned directly. Maven Central currently publishes `assertj-core` `4.0.0-M1` as its
 latest release, so pinning AssertJ by hand would pull a milestone into the build.
+
+Apache HttpClient was chosen over the JDK's own client for one reason: it accepts a custom
+`DnsResolver`. That hook is what allows "resolve, validate every address, then connect only to a
+validated one", which is the core of the SSRF defence. The JDK client offers no equivalent.
 
 ### Compatibility evidence
 

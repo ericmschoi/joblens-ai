@@ -2,10 +2,11 @@
 
 Compare a resume with a job posting and get an evidence-based, explainable fit analysis.
 
-> **Status: Phase 3 of 13.** The repository builds, tests and runs locally. A PDF resume and a
-> pasted job description can both be extracted, reviewed, corrected and confirmed through the API.
-> Reading a job posting from a URL, the analysis itself, scoring and the UI are not implemented yet.
-> Nothing in this README describes behaviour that does not exist; unbuilt work is marked as planned.
+> **Status: Phase 4a of 13.** The repository builds, tests and runs locally. A PDF resume and a job
+> description — pasted, or read from a public URL — can be extracted, reviewed, corrected and
+> confirmed through the API. Applicant-tracking-system extractors, JavaScript rendering, the analysis
+> itself, scoring and the UI are not implemented yet. Nothing in this README describes behaviour that
+> does not exist; unbuilt work is marked as planned.
 
 ## What it does
 
@@ -193,13 +194,19 @@ is exercised with user-event.
 - Document content never appears in logs, metrics labels or exception traces.
 - Personal identifiers that analysis does not need — email, phone, street address — are redacted
   before any external AI call. Career evidence is preserved.
-- Fetching an arbitrary URL is treated as a high-risk operation and runs behind a dedicated
-  validation boundary: scheme and credential checks, DNS resolution validated before connecting,
-  private, loopback, link-local and cloud-metadata addresses blocked for IPv4 and IPv6, every
-  redirect re-validated, strict timeouts, a response size cap and a content-type allowlist. No
-  cookies, authorization headers or browser session state are ever forwarded.
-- `robots.txt` is respected. JobLens does not work around login walls, CAPTCHAs or access controls;
-  it asks you to paste the job description instead.
+- Fetching a URL the user supplies is the highest-risk thing this product does, so it runs behind a
+  dedicated boundary: `http` and `https` only, no credentials in the URL, ports restricted to 80 and
+  443, DNS resolved and **every** returned address checked before connecting, and loopback, private,
+  link-local, carrier-grade NAT, reserved, multicast and cloud-metadata addresses blocked for IPv4
+  and IPv6 — including addresses smuggled inside IPv6 as IPv4-mapped, 6to4 or NAT64. The HTTP
+  client's own resolver applies the same rules, so a name re-pointed after validation still cannot
+  be connected to. Redirects are followed by hand and re-validated at every hop. Strict connect,
+  response and total timeouts apply, the response size cap is enforced while streaming, and content
+  types are restricted. No cookies, authorization headers or session state are ever forwarded, and
+  a refusal never tells the client which address it refused.
+- JobLens does not work around login walls, CAPTCHAs, bot checks or any other refusal. When a site
+  declines automated access, the answer is to ask you to paste the job description, never to try
+  harder. The crawler identifies itself honestly and is never disguised as a browser.
 - Model output is validated against a schema before use, and quoted resume evidence is checked
   against the submitted resume text so fabricated quotes cannot reach the results page.
 
@@ -210,7 +217,8 @@ is exercised with user-event.
 | 1 | Repository foundation, error contract, provider boundary, local scripts | **Done** |
 | 2 | Secure PDF validation and extraction, resume preview contract | **Done** |
 | 3 | Pasted job description extraction and normalization | **Done** |
-| 4 | Safe URL fetching, JSON-LD and ATS extraction, browser fallback | Planned |
+| 4a | Safe URL fetching, JSON-LD and generic HTML extraction | **Done** |
+| 4b | Applicant-tracking-system extractors and a controlled browser fallback | Planned |
 | 5 | Versioned analysis schema, provider boundary, prompt assets, output validation | Planned |
 | 6 | Evidence mapping and the deterministic score calculator | Planned |
 | 7 | Upload, job input and extraction-review UI | Planned |

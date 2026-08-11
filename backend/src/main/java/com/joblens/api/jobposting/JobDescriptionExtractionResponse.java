@@ -23,6 +23,7 @@ public record JobDescriptionExtractionResponse(
         String rawText,
         JobPosting jobPosting,
         List<ExtractionWarning> extractionWarnings,
+        JobPostingExtractionResult.FetchMetadata fetchMetadata,
         Stats stats) {
 
     public static final String SCHEMA_VERSION = "job-extraction/v1";
@@ -41,6 +42,7 @@ public record JobDescriptionExtractionResponse(
                 result.rawText(),
                 posting,
                 result.warnings(),
+                result.fetchMetadata(),
                 new Stats(result.rawText().length(),
                         posting.requiredQualifications().size(),
                         posting.preferredQualifications().size(),

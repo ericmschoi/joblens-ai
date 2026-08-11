@@ -28,6 +28,11 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.apache.pdfbox:pdfbox:3.0.8")
+    implementation("org.jsoup:jsoup:1.23.1")
+    // Version managed by the Spring Boot BOM. Chosen over the JDK client because it accepts a custom
+    // DnsResolver, which is what makes "resolve, validate, then connect to the validated address"
+    // possible - the JDK client offers no equivalent hook.
+    implementation("org.apache.httpcomponents.client5:httpclient5")
 
     testImplementation("org.springframework.boot:spring-boot-starter-actuator-test")
     testImplementation("org.springframework.boot:spring-boot-starter-validation-test")
