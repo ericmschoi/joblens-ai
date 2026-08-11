@@ -1,5 +1,7 @@
 package com.joblens.api.error;
 
+import com.joblens.error.ApiException;
+import com.joblens.error.ErrorCode;
 import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 /**
@@ -40,7 +43,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         if (code.status().is5xxServerError()) {
             LOG.error("code={} traceId={} status={}", code, traceId, code.status().value(), ex);
         } else {
-            LOG.warn("code={} traceId={} status={}", code, traceId, code.status().value());
+            // Only the cause's type, never its message: parser and HTTP client messages can quote
+            // fragments of the document that produced them.
+            Throwable cause = ex.getCause();
+            LOG.warn("code={} traceId={} status={} cause={}", code, traceId, code.status().value(),
+                    cause == null ? "none" : cause.getClass().getSimpleName());
         }
         ProblemDetail body = problems.create(code, ex.detail(), ex.fieldErrors(), traceId);
         return ResponseEntity.status(code.status()).body(body);
@@ -67,6 +74,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ProblemDetail body = problems.create(ErrorCode.VALIDATION_FAILED,
                 "Some of the submitted values are not valid.", fieldErrors, traceId);
         return ResponseEntity.status(ErrorCode.VALIDATION_FAILED.status()).body(body);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMissingServletRequestPart(MissingServletRequestPartException ex,
+            HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        String traceId = newTraceId();
+        LOG.warn("code={} traceId={}", ErrorCode.FILE_MISSING, traceId);
+        ProblemDetail body = problems.create(ErrorCode.FILE_MISSING,
+                "No file was included in the request.", List.of(), traceId);
+        return ResponseEntity.status(ErrorCode.FILE_MISSING.status()).body(body);
     }
 
     @Override
@@ -105,6 +122,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return switch (statusCode.value()) {
             case 404 -> ErrorCode.RESOURCE_NOT_FOUND;
             case 405 -> ErrorCode.METHOD_NOT_ALLOWED;
+            case 413 -> ErrorCode.FILE_TOO_LARGE;
             case 415 -> ErrorCode.UNSUPPORTED_MEDIA_TYPE;
             default -> statusCode.is4xxClientError() ? ErrorCode.REQUEST_INVALID : ErrorCode.INTERNAL_ERROR;
         };
@@ -114,6 +132,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return switch (code) {
             case RESOURCE_NOT_FOUND -> "That address does not exist.";
             case METHOD_NOT_ALLOWED -> "That request is not supported at this address.";
+            case FILE_TOO_LARGE -> "This upload is larger than the server accepts.";
             case UNSUPPORTED_MEDIA_TYPE -> "That request format is not supported.";
             case REQUEST_INVALID -> "The request could not be processed as sent.";
             default -> "The request could not be completed.";

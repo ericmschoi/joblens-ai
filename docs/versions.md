@@ -23,6 +23,17 @@ Verified on 2026-08-10.
 
 Java 26 and Node.js 26 exist but are not LTS, so they are not used as project runtimes.
 
+### Directly declared backend libraries
+
+| Library | Version | Added in |
+|---|---|---|
+| Apache PDFBox | 3.0.8 | Phase 2 |
+| ArchUnit (JUnit 5) | 1.5.0 | Phase 1 |
+
+JUnit, AssertJ, Jackson, Tomcat, Logback and Apache HttpClient are managed by the Spring Boot BOM and
+must not be pinned directly. Maven Central currently publishes `assertj-core` `4.0.0-M1` as its
+latest release, so pinning AssertJ by hand would pull a milestone into the build.
+
 ### Compatibility evidence
 
 - **Gradle 9.7.0 with Java 25** — the Gradle compatibility matrix lists Java 25 support for both

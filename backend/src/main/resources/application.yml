@@ -1,6 +1,12 @@
 spring:
   application:
     name: joblens-backend
+  servlet:
+    multipart:
+      # Deliberately a little above joblens.resume.max-file-size-bytes so that an oversized upload
+      # is reported by the application with actionable copy rather than by the container.
+      max-file-size: 12MB
+      max-request-size: 13MB
 
 server:
   port: 8080
@@ -30,6 +36,13 @@ logging:
     com.joblens: INFO
 
 joblens:
+  resume:
+    max-file-size-bytes: 10485760   # 10 MiB
+    max-page-count: 15
+    # Below this many usable characters the document cannot be analysed honestly.
+    min-usable-characters: 400
+    # Guards against decompression and content-explosion abuse. Extraction stops here.
+    max-extracted-characters: 500000
   cors:
     # The local Vite dev server. Production origins are configured per environment.
     allowed-origins:

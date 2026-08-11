@@ -2,6 +2,7 @@ package com.joblens.config;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Positive;
 import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
@@ -13,7 +14,13 @@ import org.springframework.validation.annotation.Validated;
  */
 @Validated
 @ConfigurationProperties(prefix = "joblens")
-public record JoblensProperties(@Valid Cors cors, @Valid Analysis analysis) {
+public record JoblensProperties(@Valid Resume resume, @Valid Cors cors, @Valid Analysis analysis) {
+
+    public record Resume(
+            @Positive long maxFileSizeBytes,
+            @Positive int maxPageCount,
+            @Positive int minUsableCharacters,
+            @Positive int maxExtractedCharacters) {}
 
     public record Cors(@NotEmpty List<String> allowedOrigins) {}
 

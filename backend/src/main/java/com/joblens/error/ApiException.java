@@ -1,4 +1,4 @@
-package com.joblens.api.error;
+package com.joblens.error;
 
 import java.util.List;
 

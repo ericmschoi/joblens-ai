@@ -1,5 +1,7 @@
 package com.joblens.api.error;
 
+import com.joblens.error.ApiException;
+import com.joblens.error.ErrorCode;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -21,7 +23,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@WebMvcTest
+// Only the probe controller is loaded. The slice would otherwise pull in every real controller and
+// require their services, which has nothing to do with what this test covers.
+@WebMvcTest(controllers = GlobalExceptionHandlerTest.ProbeController.class)
 @EnableConfigurationProperties(JoblensProperties.class)
 @Import({ProblemDetailFactory.class, GlobalExceptionHandlerTest.ProbeController.class})
 class GlobalExceptionHandlerTest {

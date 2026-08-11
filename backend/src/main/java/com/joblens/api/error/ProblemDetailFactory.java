@@ -1,5 +1,7 @@
 package com.joblens.api.error;
 
+import com.joblens.error.ApiException;
+import com.joblens.error.ErrorCode;
 import java.net.URI;
 import java.util.List;
 import org.springframework.http.ProblemDetail;
