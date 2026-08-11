@@ -1,4 +1,4 @@
-package com.joblens.resume;
+package com.joblens.document;
 
 /**
  * Whether a resume representation has actually been reviewed by the person it describes.
@@ -8,7 +8,7 @@ package com.joblens.resume;
  * matters because structural parsing is heuristic. Only an explicit confirmation, submitted through
  * the confirmation endpoint, yields {@link #CONFIRMED}.
  */
-public enum ResumeReviewStatus {
+public enum ReviewStatus {
 
     /** Produced by extraction. The structure is a machine's guess and has not been checked. */
     REVIEW_REQUIRED,

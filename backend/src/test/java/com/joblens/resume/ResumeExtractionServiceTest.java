@@ -2,6 +2,8 @@ package com.joblens.resume;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.joblens.document.ReviewStatus;
+
 import com.joblens.document.ExtractionWarning;
 import com.joblens.document.WarningCode;
 import com.joblens.testsupport.PdfFixtureFactory;
@@ -43,7 +45,7 @@ class ResumeExtractionServiceTest {
 
         assertThat(clean.reviewStatus())
                 .as("a clean parse is still only a guess until the candidate says otherwise")
-                .isEqualTo(ResumeReviewStatus.REVIEW_REQUIRED);
+                .isEqualTo(ReviewStatus.REVIEW_REQUIRED);
         assertThat(clean.evidenceAbsencePolicy()).isEqualTo(EvidenceAbsencePolicy.MUST_BE_UNKNOWN);
     }
 

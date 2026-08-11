@@ -29,8 +29,18 @@ public enum WarningCode {
             "No work experience entries could be identified. Add them in the review step, "
                     + "otherwise this analysis cannot judge your experience."),
     UNASSIGNED_TEXT_BLOCKS(Severity.WARNING,
-            "Some text could not be attached to a section or a role. It is still in the full text below, "
+            "Some text could not be attached to a section. It is still in the full text below, "
                     + "but it is missing from the structured view."),
+    NO_QUALIFICATION_SECTIONS_DETECTED(Severity.HIGH,
+            "No requirements or qualifications section was recognised in this posting. "
+                    + "Check the full text and add what the role actually requires."),
+    NO_RESPONSIBILITIES_DETECTED(Severity.WARNING,
+            "No responsibilities section was recognised, so the analysis has less to compare "
+                    + "your day-to-day experience against."),
+    REQUIRED_AND_PREFERRED_NOT_SEPARATED(Severity.WARNING,
+            "This posting does not clearly separate required from preferred qualifications. "
+                    + "Anything not marked as optional was treated as required, which is the stricter "
+                    + "reading, and the full text is used as well when judging requirements."),
     LOW_CONFIDENCE_STRUCTURE(Severity.WARNING,
             "Some entries are missing a title, an employer or a reliable date range. "
                     + "Check them before running the analysis."),

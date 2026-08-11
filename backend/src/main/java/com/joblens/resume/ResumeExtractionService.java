@@ -1,6 +1,7 @@
 package com.joblens.resume;
 
 import com.joblens.document.ExtractionWarning;
+import com.joblens.document.ReviewStatus;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -49,8 +50,8 @@ public class ResumeExtractionService {
         // Extraction output is never confirmed, so absent evidence can only ever mean "unknown" here.
         return new ResumeExtractionResult(
                 extractionId,
-                ResumeReviewStatus.REVIEW_REQUIRED,
-                ResumeEvidenceReliability.policyFor(ResumeReviewStatus.REVIEW_REQUIRED, warnings),
+                ReviewStatus.REVIEW_REQUIRED,
+                ResumeEvidenceReliability.policyFor(ReviewStatus.REVIEW_REQUIRED, warnings),
                 text.rawText(),
                 text.pages(),
                 normalized.profile(),

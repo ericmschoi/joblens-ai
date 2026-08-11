@@ -1,10 +1,11 @@
 package com.joblens.resume;
 
-import com.joblens.error.ApiException;
-import com.joblens.error.ErrorCode;
 import com.joblens.config.JoblensProperties;
 import com.joblens.document.ExtractionWarning;
+import com.joblens.document.InstructionLikeText;
 import com.joblens.document.WarningCode;
+import com.joblens.error.ApiException;
+import com.joblens.error.ErrorCode;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,17 +48,6 @@ public class PdfTextExtractionService {
     private static final int REPEATED_LINE_MIN_PAGES = 3;
 
     private static final Pattern WHITESPACE = Pattern.compile("\\s+");
-
-    /**
-     * Phrases that try to steer a model rather than describe a career. Matching text is never
-     * removed - the user is told about it, and the analysis prompt fences document content as data.
-     */
-    private static final List<Pattern> INSTRUCTION_PATTERNS = List.of(
-            Pattern.compile("ignore (all |any )?(the )?(previous|prior|above) instructions", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("disregard (the )?(previous|prior|above)", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("system (prompt|message)", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("you are (now )?an? (ai|assistant|language model)", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("(rate|score|grade) this (candidate|resume|applicant) (as|a) ", Pattern.CASE_INSENSITIVE));
 
     private final JoblensProperties.Resume limits;
 
@@ -158,7 +148,7 @@ public class PdfTextExtractionService {
         if (looksLikeBrokenWords(rawText)) {
             warnings.add(ExtractionWarning.of(WarningCode.BROKEN_WORDS));
         }
-        if (containsInstructionLikeText(rawText)) {
+        if (InstructionLikeText.isPresentIn(rawText)) {
             warnings.add(ExtractionWarning.of(WarningCode.POSSIBLE_EMBEDDED_INSTRUCTIONS));
         }
         for (ExtractedResumeText.PageInfo page : pages) {
@@ -245,10 +235,6 @@ public class PdfTextExtractionService {
                 .filter(token -> !token.equals("a") && !token.equals("i"))
                 .count();
         return (double) singles / tokens.size() > BROKEN_WORD_RATIO_THRESHOLD;
-    }
-
-    private static boolean containsInstructionLikeText(String text) {
-        return INSTRUCTION_PATTERNS.stream().anyMatch(pattern -> pattern.matcher(text).find());
     }
 
     private static boolean pageDrawsImages(PDPage page) {

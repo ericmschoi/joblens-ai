@@ -18,9 +18,31 @@ public final class TestProperties {
                 MAX_FILE_SIZE_BYTES, MAX_PAGE_COUNT, MIN_USABLE_CHARACTERS, MAX_EXTRACTED_CHARACTERS));
     }
 
+    public static final int MIN_JOB_TEXT_CHARACTERS = 200;
+    public static final int MAX_JOB_TEXT_CHARACTERS = 40_000;
+
     public static JoblensProperties withResume(JoblensProperties.Resume resume) {
+        return build(resume, defaultJobPosting());
+    }
+
+    public static JoblensProperties withJobPosting(JoblensProperties.JobPosting jobPosting) {
+        return build(defaultResume(), jobPosting);
+    }
+
+    public static JoblensProperties.Resume defaultResume() {
+        return new JoblensProperties.Resume(
+                MAX_FILE_SIZE_BYTES, MAX_PAGE_COUNT, MIN_USABLE_CHARACTERS, MAX_EXTRACTED_CHARACTERS);
+    }
+
+    public static JoblensProperties.JobPosting defaultJobPosting() {
+        return new JoblensProperties.JobPosting(MIN_JOB_TEXT_CHARACTERS, MAX_JOB_TEXT_CHARACTERS);
+    }
+
+    private static JoblensProperties build(JoblensProperties.Resume resume,
+            JoblensProperties.JobPosting jobPosting) {
         return new JoblensProperties(
                 resume,
+                jobPosting,
                 new JoblensProperties.Cors(List.of("http://localhost:5173")),
                 new JoblensProperties.Analysis("fake"));
     }

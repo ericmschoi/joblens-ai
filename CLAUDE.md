@@ -27,11 +27,15 @@ which is the source of truth for scope. This file records how to work in the rep
    metrics labels.
 6. **`UNKNOWN` is not `GAP`.** Missing information is not evidence of absence and never triggers a
    score ceiling.
-7. **Unreviewed parsing is not evidence.** Extraction always returns `REVIEW_REQUIRED`; only
-   `POST /api/v1/resumes/confirm` produces a confirmed resume. Absent evidence may be judged `GAP`
-   only when `ResumeEvidenceReliability.policyFor(...)` returns `MAY_BE_GAP`. Anything else is
-   `UNKNOWN` and cannot trigger a critical-gap ceiling. Scoring consumes the confirmed
-   representation, never the extraction output, and verifies its `contentFingerprint`.
+7. **Unreviewed parsing is not evidence.** Both documents work the same way. Extraction always
+   returns `REVIEW_REQUIRED`; only the matching `/confirm` endpoint produces a confirmed document.
+   Scoring consumes the confirmed representations, never the extraction output, and verifies their
+   `contentFingerprint`.
+   - Resume: absent evidence may be judged `GAP` only when `ResumeEvidenceReliability.policyFor(...)`
+     returns `MAY_BE_GAP`. Anything else is `UNKNOWN` and cannot trigger a critical-gap ceiling.
+   - Job posting: the qualification lists may be treated as the complete requirements only when
+     `JobPostingReliability.policyFor(...)` returns `STRUCTURED_SECTIONS`. Otherwise requirement
+     decomposition must read the raw text too.
 8. **Do not invent experience.** No suggestion may add a technology, metric, employer, credential or
    achievement that is not in the resume.
 
@@ -53,8 +57,9 @@ backend/    Spring Boot modular monolith
   error/      ErrorCode catalogue and ApiException (shared kernel, no HTTP types)
   api/        thin controllers, DTOs, RFC 9457 problem details
   resume/     PDF validation, extraction, normalization
-  jobposting/ safe fetching, extraction strategies             (phases 3-4)
-  document/   provenance, extraction warnings, PII redaction   (redaction in phase 5)
+  jobposting/ pasted-text normalization and parsing; safe URL fetching (phase 4)
+  document/   review status, fingerprint, provenance, warnings, injection detection;
+              PII redaction (phase 5)
   analysis/   provider boundary, prompt assets, output validation (phase 5)
   scoring/    rubric, category scorers, ceilings, tier policy  (phase 6)
   config/     properties, limits, CORS

@@ -1,6 +1,7 @@
 package com.joblens.resume;
 
 import com.joblens.document.ExtractionWarning;
+import com.joblens.document.ReviewStatus;
 import com.joblens.document.WarningCode;
 import java.util.List;
 import java.util.Set;
@@ -31,8 +32,8 @@ public final class ResumeEvidenceReliability {
 
     private ResumeEvidenceReliability() {}
 
-    public static EvidenceAbsencePolicy policyFor(ResumeReviewStatus status, List<ExtractionWarning> warnings) {
-        if (status != ResumeReviewStatus.CONFIRMED) {
+    public static EvidenceAbsencePolicy policyFor(ReviewStatus status, List<ExtractionWarning> warnings) {
+        if (status != ReviewStatus.CONFIRMED) {
             return EvidenceAbsencePolicy.MUST_BE_UNKNOWN;
         }
         boolean uncertain = warnings.stream()

@@ -1,6 +1,7 @@
 package com.joblens.resume;
 
 import com.joblens.document.ExtractionWarning;
+import com.joblens.document.ReviewStatus;
 import com.joblens.resume.model.CandidateProfile;
 import java.time.Instant;
 import java.util.List;
@@ -17,7 +18,7 @@ import java.util.List;
  *        shown to be carrying this exact confirmed content
  */
 public record ConfirmedResume(
-        ResumeReviewStatus reviewStatus,
+        ReviewStatus reviewStatus,
         Instant confirmedAt,
         String contentFingerprint,
         String rawText,

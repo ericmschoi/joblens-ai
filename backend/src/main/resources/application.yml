@@ -43,6 +43,10 @@ joblens:
     min-usable-characters: 400
     # Guards against decompression and content-explosion abuse. Extraction stops here.
     max-extracted-characters: 500000
+  job-posting:
+    # Shorter than this and there is nothing meaningful to compare a resume against.
+    min-text-characters: 200
+    max-text-characters: 40000
   cors:
     # The local Vite dev server. Production origins are configured per environment.
     allowed-origins:

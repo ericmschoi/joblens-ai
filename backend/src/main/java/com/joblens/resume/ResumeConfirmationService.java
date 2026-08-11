@@ -1,7 +1,9 @@
 package com.joblens.resume;
 
 import com.joblens.config.JoblensProperties;
+import com.joblens.document.ContentFingerprint;
 import com.joblens.document.ExtractionWarning;
+import com.joblens.document.ReviewStatus;
 import com.joblens.error.ApiException;
 import com.joblens.error.ErrorCode;
 import com.joblens.resume.model.CandidateProfile;
@@ -28,10 +30,10 @@ public class ResumeConfirmationService {
     private static final Logger LOG = LoggerFactory.getLogger(ResumeConfirmationService.class);
 
     private final JoblensProperties.Resume limits;
-    private final ResumeContentFingerprint fingerprints;
+    private final ContentFingerprint fingerprints;
     private final Clock clock;
 
-    public ResumeConfirmationService(JoblensProperties properties, ResumeContentFingerprint fingerprints,
+    public ResumeConfirmationService(JoblensProperties properties, ContentFingerprint fingerprints,
             Clock clock) {
         this.limits = properties.resume();
         this.fingerprints = fingerprints;
@@ -71,13 +73,13 @@ public class ResumeConfirmationService {
         warnings.addAll(ResumeStructureWarnings.forProfile(reviewed));
 
         EvidenceAbsencePolicy policy =
-                ResumeEvidenceReliability.policyFor(ResumeReviewStatus.CONFIRMED, warnings);
+                ResumeEvidenceReliability.policyFor(ReviewStatus.CONFIRMED, warnings);
 
         LOG.info("resume confirmed characters={} roles={} warnings={} evidenceAbsencePolicy={}",
                 text.length(), reviewed.workExperiences().size(), warnings.size(), policy);
 
         return new ConfirmedResume(
-                ResumeReviewStatus.CONFIRMED,
+                ReviewStatus.CONFIRMED,
                 clock.instant(),
                 fingerprints.of(text, reviewed),
                 text,
