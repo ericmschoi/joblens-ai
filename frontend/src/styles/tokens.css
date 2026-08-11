@@ -1,0 +1,69 @@
+/*
+ * Design tokens.
+ *
+ * Every colour pair used for text is chosen to clear WCAG 2.2 AA contrast (4.5:1 for body text,
+ * 3:1 for large text and UI boundaries) in both schemes. Components reference tokens only, never
+ * raw colour values, so contrast can be audited in one place.
+ */
+
+:root {
+  /* Neutrals */
+  --color-surface: #ffffff;
+  --color-surface-raised: #f6f7f9;
+  --color-border: #d3d8de;
+  --color-text: #17202a;
+  --color-text-muted: #55606d;
+
+  /* Accents */
+  --color-accent: #1d4ed8;
+  --color-accent-text: #ffffff;
+  --color-focus: #1d4ed8;
+
+  /* Status */
+  --color-danger: #b3261e;
+  --color-warning: #8a5300;
+  --color-success: #1c6b3c;
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+
+  /* Typography */
+  --font-sans:
+    system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: 2rem;
+  --line-height-base: 1.6;
+
+  /* Shape */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --focus-ring-width: 3px;
+  --content-max-width: 68rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-surface: #12171d;
+    --color-surface-raised: #1b222b;
+    --color-border: #3a444f;
+    --color-text: #eef2f6;
+    --color-text-muted: #b3bdc8;
+
+    --color-accent: #8ab4ff;
+    --color-accent-text: #0b1220;
+    --color-focus: #8ab4ff;
+
+    --color-danger: #ff9d95;
+    --color-warning: #f0bd6b;
+    --color-success: #82d3a3;
+  }
+}
