@@ -22,9 +22,18 @@ public enum WarningCode {
             "This document was longer than JobLens processes, so the text below is incomplete."),
     ENCRYPTED_BUT_READABLE(Severity.INFO,
             "This PDF has usage restrictions, but its text could still be read."),
-    NO_SECTIONS_DETECTED(Severity.WARNING,
+    NO_SECTIONS_DETECTED(Severity.HIGH,
             "No standard resume sections were recognised, so the structured view below may be incomplete. "
                     + "The full text was still extracted."),
+    NO_ROLES_DETECTED(Severity.HIGH,
+            "No work experience entries could be identified. Add them in the review step, "
+                    + "otherwise this analysis cannot judge your experience."),
+    UNASSIGNED_TEXT_BLOCKS(Severity.WARNING,
+            "Some text could not be attached to a section or a role. It is still in the full text below, "
+                    + "but it is missing from the structured view."),
+    LOW_CONFIDENCE_STRUCTURE(Severity.WARNING,
+            "Some entries are missing a title, an employer or a reliable date range. "
+                    + "Check them before running the analysis."),
     POSSIBLE_EMBEDDED_INSTRUCTIONS(Severity.HIGH,
             "This document contains text that looks like instructions to an AI system. "
                     + "JobLens treats document content as evidence only and ignores such instructions.");

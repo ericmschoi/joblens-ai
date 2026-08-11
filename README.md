@@ -2,11 +2,10 @@
 
 Compare a resume with a job posting and get an evidence-based, explainable fit analysis.
 
-> **Status: Phase 2 of 13.** The repository builds, tests and runs locally, and
-> `POST /api/v1/resumes/extract` accepts a PDF resume and returns the extracted text, a structured
-> candidate profile and extraction warnings. Job-posting extraction, analysis, scoring and the UI
-> are not implemented yet. Nothing in this README describes behaviour that does not exist; unbuilt
-> work is marked as planned.
+> **Status: Phase 2 of 13.** The repository builds, tests and runs locally. `POST /api/v1/resumes/extract`
+> reads a PDF resume, and `POST /api/v1/resumes/confirm` records the user's reviewed and corrected
+> version. Job-posting extraction, analysis, scoring and the UI are not implemented yet. Nothing in
+> this README describes behaviour that does not exist; unbuilt work is marked as planned.
 
 ## What it does
 
@@ -33,8 +32,26 @@ the role from how attractive the opportunity is.
 5. Read the score interpretation guide, then the overall match, six category ratings with evidence,
    gaps, resume positioning advice and interview preparation.
 
-The review step is mandatory by design. PDF layouts and job pages are extracted imperfectly, and you
-should be able to see and fix that before it distorts the result.
+The review step is mandatory by design, and enforced in the API rather than only in the UI. PDF
+layouts and job pages are extracted imperfectly, and you should be able to see and fix that before
+it distorts the result.
+
+Extraction always returns `reviewStatus: REVIEW_REQUIRED`. A `200` means the file was read, not that
+the reading was correct. Only `POST /api/v1/resumes/confirm`, with an explicit `confirmed: true`,
+produces a confirmed resume — and that is the only representation analysis and scoring may consume.
+
+Because structural parsing is heuristic, every result carries an `evidenceAbsencePolicy`:
+
+- `MUST_BE_UNKNOWN` — the resume is unreviewed, or its structure is uncertain. A requirement with no
+  matching evidence must be reported as `UNKNOWN`. It cannot be judged a gap and cannot trigger a
+  score ceiling.
+- `MAY_BE_GAP` — the resume was confirmed and carries no structural uncertainty, so absent evidence
+  can mean what it appears to mean.
+
+A parser that misses a role produces the same observable state as a candidate who never held it.
+Keeping those apart is what stops a parsing bug from quietly capping someone's score. Raw text is
+always returned alongside the structure, whatever happened to the parse, and travels with the
+confirmed resume so downstream analysis can quote the source rather than only the derived structure.
 
 ## Ratings
 

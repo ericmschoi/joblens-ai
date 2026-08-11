@@ -126,9 +126,72 @@ class ResumeNormalizerTest {
                 More prose that continues in the same manner.
                 """);
 
-        assertThat(result.warnings().stream().map(ExtractionWarning::code))
-                .contains(WarningCode.NO_SECTIONS_DETECTED);
+        assertThat(codesOf(result)).contains(WarningCode.NO_SECTIONS_DETECTED, WarningCode.NO_ROLES_DETECTED);
         assertThat(result.profile().workExperiences()).isEmpty();
+    }
+
+    @Test
+    void warnsSeparatelyWhenSectionsAreFoundButNoRolesAreIn() {
+        NormalizedResume result = normalizer.normalize("""
+                SKILLS
+                Java, Spring Boot, React
+
+                EDUCATION
+                Bachelor of Science, Computer Science   Sep 2014 - Apr 2018
+                University of Waterloo
+                """);
+
+        assertThat(codesOf(result))
+                .as("sections parsed fine, so this is a different failure from finding no sections at all")
+                .contains(WarningCode.NO_ROLES_DETECTED)
+                .doesNotContain(WarningCode.NO_SECTIONS_DETECTED);
+    }
+
+    @Test
+    void warnsWithACountWhenTextInsideASectionBelongsToNoRole() {
+        NormalizedResume result = normalizer.normalize("""
+                EXPERIENCE
+                An introductory paragraph about my career.
+                Another line of context.
+                A third line of context.
+                A fourth line of context.
+                Senior Software Engineer, Northwind Systems   Mar 2021 - Present
+                - Shipped a payments service.
+                """);
+
+        assertThat(result.warnings())
+                .filteredOn(warning -> warning.code() == WarningCode.UNASSIGNED_TEXT_BLOCKS)
+                .singleElement()
+                .satisfies(warning -> assertThat(warning.count()).isEqualTo(3));
+    }
+
+    @Test
+    void warnsWhenARoleHasNoReliableDateRange() {
+        NormalizedResume result = normalizer.normalize("""
+                EXPERIENCE
+                Senior Software Engineer, Northwind Systems   2021 - 2023
+                - Shipped a payments service.
+                """);
+
+        assertThat(result.warnings())
+                .filteredOn(warning -> warning.code() == WarningCode.LOW_CONFIDENCE_STRUCTURE)
+                .singleElement()
+                .satisfies(warning -> assertThat(warning.count()).isEqualTo(1));
+    }
+
+    @Test
+    void aCleanResumeRaisesNoStructuralWarningsAtAll() {
+        assertThat(codesOf(normalizer.normalize(RESUME)))
+                .as("warnings the user can safely ignore train them to ignore all warnings")
+                .doesNotContain(
+                        WarningCode.NO_SECTIONS_DETECTED,
+                        WarningCode.NO_ROLES_DETECTED,
+                        WarningCode.UNASSIGNED_TEXT_BLOCKS,
+                        WarningCode.LOW_CONFIDENCE_STRUCTURE);
+    }
+
+    private static List<WarningCode> codesOf(NormalizedResume result) {
+        return result.warnings().stream().map(ExtractionWarning::code).toList();
     }
 
     @Test

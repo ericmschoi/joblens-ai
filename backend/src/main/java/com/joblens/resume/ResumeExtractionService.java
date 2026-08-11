@@ -46,7 +46,15 @@ public class ResumeExtractionService {
         LOG.info("resume extracted extractionId={} pages={} characters={} warnings={} elapsedMs={}",
                 extractionId, text.pages().size(), text.rawText().length(), warnings.size(), elapsedMs);
 
+        // Extraction output is never confirmed, so absent evidence can only ever mean "unknown" here.
         return new ResumeExtractionResult(
-                extractionId, text.rawText(), text.pages(), normalized.profile(), warnings, elapsedMs);
+                extractionId,
+                ResumeReviewStatus.REVIEW_REQUIRED,
+                ResumeEvidenceReliability.policyFor(ResumeReviewStatus.REVIEW_REQUIRED, warnings),
+                text.rawText(),
+                text.pages(),
+                normalized.profile(),
+                warnings,
+                elapsedMs);
     }
 }
