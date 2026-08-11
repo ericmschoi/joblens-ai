@@ -2,9 +2,11 @@
 
 Compare a resume with a job posting and get an evidence-based, explainable fit analysis.
 
-> **Status: Phase 1 of 13 — foundation.** The repository builds, tests and runs locally. Resume
-> extraction, job-posting extraction, analysis and the results UI are not implemented yet. Nothing
-> in this README describes behaviour that does not exist; unbuilt work is marked as planned.
+> **Status: Phase 2 of 13.** The repository builds, tests and runs locally, and
+> `POST /api/v1/resumes/extract` accepts a PDF resume and returns the extracted text, a structured
+> candidate profile and extraction warnings. Job-posting extraction, analysis, scoring and the UI
+> are not implemented yet. Nothing in this README describes behaviour that does not exist; unbuilt
+> work is marked as planned.
 
 ## What it does
 
@@ -76,7 +78,7 @@ research, user preference profiles, and any language other than English.
 |---|---|
 | Backend | Java 25 LTS (Temurin 25.0.4+7), Spring Boot 4.1.0, Gradle 9.7.0 (Kotlin DSL) |
 | Frontend | Node.js 24.19.0 LTS, React 19.2.8, TypeScript 6.0.3, Vite 8.2.1, CSS Modules + design tokens |
-| Extraction | Apache PDFBox, Jsoup, Playwright for Java as a controlled fallback *(planned)* |
+| Extraction | Apache PDFBox 3.0.8; Jsoup and Playwright for Java *(planned, phases 3-4)* |
 | AI | Provider-neutral boundary; deterministic in-process fake is the default. No provider chosen yet. |
 | Testing | JUnit 5, ArchUnit, Vitest, Testing Library, axe-core |
 
@@ -143,11 +145,12 @@ never from the client bundle.
 ## Testing approach
 
 Tests use fixtures rather than live third-party pages, so the suite is repeatable. Resume PDF
-fixtures will be generated programmatically at test time — one-column, two-column, design-heavy,
-multi-page with repeated headers, encrypted, image-only, corrupt, and size and page-count
-boundaries — which keeps real personal documents out of the repository entirely. Job page fixtures
-will be saved, version-tagged HTML for representative applicant tracking systems. Any test that
-needs the live internet is tagged separately and excluded from the default run.
+fixtures are generated programmatically at test time by `PdfFixtureFactory` — one-column,
+two-column, design-heavy, multi-page with repeated headers, password protected, image-only, corrupt,
+letter-spaced, and size and page-count boundaries — which keeps real personal documents out of the
+repository entirely. Job page fixtures will be saved, version-tagged HTML for representative
+applicant tracking systems. Any test that needs the live internet is tagged separately and excluded
+from the default run.
 
 Security tests are first-class: SSRF cases, unsafe redirect chains, malicious HTML, PDF edge cases,
 prompt-injection strings embedded in documents, adversarial model output, and checks that document
@@ -178,7 +181,7 @@ is exercised with user-event.
 | Phase | Work | State |
 |---|---|---|
 | 1 | Repository foundation, error contract, provider boundary, local scripts | **Done** |
-| 2 | Secure PDF validation and extraction, resume preview contract | Planned |
+| 2 | Secure PDF validation and extraction, resume preview contract | **Done** |
 | 3 | Pasted job description extraction and normalization | Planned |
 | 4 | Safe URL fetching, JSON-LD and ATS extraction, browser fallback | Planned |
 | 5 | Versioned analysis schema, provider boundary, prompt assets, output validation | Planned |

@@ -17,7 +17,8 @@ class ArchitectureRulesTest {
 
     @ArchTest
     static final ArchRule domainMustNotDependOnTheApiLayer = noClasses()
-            .that().resideInAnyPackage("com.joblens.analysis..", "com.joblens.config..")
+            .that().resideInAnyPackage("com.joblens.analysis..", "com.joblens.config..",
+                    "com.joblens.resume..", "com.joblens.document..")
             .should().dependOnClassesThat().resideInAPackage("com.joblens.api..")
             .because("the API layer adapts the domain, never the other way around");
 
