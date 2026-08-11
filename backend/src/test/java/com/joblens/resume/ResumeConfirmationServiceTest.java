@@ -3,6 +3,9 @@ package com.joblens.resume;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.joblens.document.ContentFingerprint;
+import com.joblens.document.ReviewStatus;
+
 import com.joblens.document.ExtractionWarning;
 import com.joblens.document.WarningCode;
 import com.joblens.error.ApiException;
@@ -24,8 +27,8 @@ class ResumeConfirmationServiceTest {
     private static final Instant NOW = Instant.parse("2026-08-11T12:00:00Z");
     private static final String RESUME = String.join("\n", PdfFixtureFactory.ONE_COLUMN_RESUME);
 
-    private final ResumeContentFingerprint fingerprints =
-            new ResumeContentFingerprint(JsonMapper.builder().build());
+    private final ContentFingerprint fingerprints =
+            new ContentFingerprint(JsonMapper.builder().build());
     private final ResumeConfirmationService service = new ResumeConfirmationService(
             TestProperties.defaults(), fingerprints, Clock.fixed(NOW, ZoneOffset.UTC));
 
@@ -43,7 +46,7 @@ class ResumeConfirmationServiceTest {
     void aConfirmedResumeCarriesTheReviewedContentAndAFingerprint() {
         ConfirmedResume confirmed = service.confirm(RESUME, parsedProfile, true, List.of());
 
-        assertThat(confirmed.reviewStatus()).isEqualTo(ResumeReviewStatus.CONFIRMED);
+        assertThat(confirmed.reviewStatus()).isEqualTo(ReviewStatus.CONFIRMED);
         assertThat(confirmed.confirmedAt()).isEqualTo(NOW);
         assertThat(confirmed.rawText()).contains("Northwind Systems");
         assertThat(confirmed.profile().workExperiences()).hasSize(2);

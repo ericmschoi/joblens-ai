@@ -14,13 +14,18 @@ import org.springframework.validation.annotation.Validated;
  */
 @Validated
 @ConfigurationProperties(prefix = "joblens")
-public record JoblensProperties(@Valid Resume resume, @Valid Cors cors, @Valid Analysis analysis) {
+public record JoblensProperties(
+        @Valid Resume resume, @Valid JobPosting jobPosting, @Valid Cors cors, @Valid Analysis analysis) {
 
     public record Resume(
             @Positive long maxFileSizeBytes,
             @Positive int maxPageCount,
             @Positive int minUsableCharacters,
             @Positive int maxExtractedCharacters) {}
+
+    public record JobPosting(
+            @Positive int minTextCharacters,
+            @Positive int maxTextCharacters) {}
 
     public record Cors(@NotEmpty List<String> allowedOrigins) {}
 

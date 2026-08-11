@@ -2,6 +2,8 @@ package com.joblens.resume;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.joblens.document.ReviewStatus;
+
 import com.joblens.document.ExtractionWarning;
 import com.joblens.document.WarningCode;
 import java.util.List;
@@ -19,7 +21,7 @@ class ResumeEvidenceReliabilityTest {
     @Test
     void anUnreviewedResumeCanNeverProduceADefiniteGap() {
         EvidenceAbsencePolicy policy = ResumeEvidenceReliability.policyFor(
-                ResumeReviewStatus.REVIEW_REQUIRED, List.of());
+                ReviewStatus.REVIEW_REQUIRED, List.of());
 
         assertThat(policy)
                 .as("extraction output is a machine's guess, so nothing missing from it is confirmed missing")
@@ -29,7 +31,7 @@ class ResumeEvidenceReliabilityTest {
     @Test
     void aCleanConfirmedResumeAllowsAbsentEvidenceToCountAsAGap() {
         EvidenceAbsencePolicy policy = ResumeEvidenceReliability.policyFor(
-                ResumeReviewStatus.CONFIRMED, List.of());
+                ReviewStatus.CONFIRMED, List.of());
 
         assertThat(policy).isEqualTo(EvidenceAbsencePolicy.MAY_BE_GAP);
     }
@@ -47,7 +49,7 @@ class ResumeEvidenceReliabilityTest {
     })
     void structuralUncertaintySurvivesConfirmationAndStillBlocksGaps(WarningCode code) {
         EvidenceAbsencePolicy policy = ResumeEvidenceReliability.policyFor(
-                ResumeReviewStatus.CONFIRMED, List.of(ExtractionWarning.of(code)));
+                ReviewStatus.CONFIRMED, List.of(ExtractionWarning.of(code)));
 
         assertThat(policy)
                 .as("%s means content may be missing from the structured view, not from the career", code)
@@ -57,7 +59,7 @@ class ResumeEvidenceReliabilityTest {
     @Test
     void aWarningAboutHowTheFileWasReadDoesNotBlockGapsOnItsOwn() {
         EvidenceAbsencePolicy policy = ResumeEvidenceReliability.policyFor(
-                ResumeReviewStatus.CONFIRMED,
+                ReviewStatus.CONFIRMED,
                 List.of(ExtractionWarning.of(WarningCode.ENCRYPTED_BUT_READABLE),
                         ExtractionWarning.of(WarningCode.REPEATED_HEADER_FOOTER)));
 
@@ -69,7 +71,7 @@ class ResumeEvidenceReliabilityTest {
     @Test
     void oneUncertainWarningAmongManyIsEnoughToBlockGaps() {
         EvidenceAbsencePolicy policy = ResumeEvidenceReliability.policyFor(
-                ResumeReviewStatus.CONFIRMED,
+                ReviewStatus.CONFIRMED,
                 List.of(ExtractionWarning.of(WarningCode.ENCRYPTED_BUT_READABLE),
                         ExtractionWarning.of(WarningCode.POSSIBLE_MULTI_COLUMN),
                         ExtractionWarning.of(WarningCode.REPEATED_HEADER_FOOTER)));

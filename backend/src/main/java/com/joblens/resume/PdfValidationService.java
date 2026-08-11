@@ -1,8 +1,8 @@
 package com.joblens.resume;
 
+import com.joblens.config.JoblensProperties;
 import com.joblens.error.ApiException;
 import com.joblens.error.ErrorCode;
-import com.joblens.config.JoblensProperties;
 import org.springframework.stereotype.Service;
 
 /**

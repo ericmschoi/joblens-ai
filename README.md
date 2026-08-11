@@ -2,10 +2,10 @@
 
 Compare a resume with a job posting and get an evidence-based, explainable fit analysis.
 
-> **Status: Phase 2 of 13.** The repository builds, tests and runs locally. `POST /api/v1/resumes/extract`
-> reads a PDF resume, and `POST /api/v1/resumes/confirm` records the user's reviewed and corrected
-> version. Job-posting extraction, analysis, scoring and the UI are not implemented yet. Nothing in
-> this README describes behaviour that does not exist; unbuilt work is marked as planned.
+> **Status: Phase 3 of 13.** The repository builds, tests and runs locally. A PDF resume and a
+> pasted job description can both be extracted, reviewed, corrected and confirmed through the API.
+> Reading a job posting from a URL, the analysis itself, scoring and the UI are not implemented yet.
+> Nothing in this README describes behaviour that does not exist; unbuilt work is marked as planned.
 
 ## What it does
 
@@ -40,18 +40,28 @@ Extraction always returns `reviewStatus: REVIEW_REQUIRED`. A `200` means the fil
 the reading was correct. Only `POST /api/v1/resumes/confirm`, with an explicit `confirmed: true`,
 produces a confirmed resume — and that is the only representation analysis and scoring may consume.
 
-Because structural parsing is heuristic, every result carries an `evidenceAbsencePolicy`:
+Because structural parsing is heuristic, each result also states how far its structure can be
+trusted.
 
-- `MUST_BE_UNKNOWN` — the resume is unreviewed, or its structure is uncertain. A requirement with no
-  matching evidence must be reported as `UNKNOWN`. It cannot be judged a gap and cannot trigger a
-  score ceiling.
-- `MAY_BE_GAP` — the resume was confirmed and carries no structural uncertainty, so absent evidence
-  can mean what it appears to mean.
+A **resume** carries an `evidenceAbsencePolicy`:
 
-A parser that misses a role produces the same observable state as a candidate who never held it.
-Keeping those apart is what stops a parsing bug from quietly capping someone's score. Raw text is
-always returned alongside the structure, whatever happened to the parse, and travels with the
-confirmed resume so downstream analysis can quote the source rather than only the derived structure.
+- `MUST_BE_UNKNOWN` — unreviewed, or structurally uncertain. A requirement with no matching evidence
+  must be reported as `UNKNOWN`. It cannot be judged a gap and cannot trigger a score ceiling.
+- `MAY_BE_GAP` — confirmed and structurally clean, so absent evidence can mean what it appears to
+  mean.
+
+A **job posting** carries a `requirementSourcePolicy`:
+
+- `FULL_TEXT_FALLBACK` — unreviewed, or its sections could not be separated reliably. Requirement
+  decomposition must read the full text; the structured lists are a hint at best.
+- `STRUCTURED_SECTIONS` — confirmed and cleanly sectioned.
+
+A parser that misses a role produces the same observable state as a candidate who never held it, and
+a posting whose headings went unrecognised looks the same as one with no requirements. Keeping those
+apart is what stops a parsing bug from quietly capping someone's score, or from making a demanding
+role look easy. Raw text is always returned alongside the structure, whatever happened to the parse,
+and travels with the confirmed document so downstream analysis can quote the source rather than only
+the derived structure.
 
 ## Ratings
 
@@ -199,7 +209,7 @@ is exercised with user-event.
 |---|---|---|
 | 1 | Repository foundation, error contract, provider boundary, local scripts | **Done** |
 | 2 | Secure PDF validation and extraction, resume preview contract | **Done** |
-| 3 | Pasted job description extraction and normalization | Planned |
+| 3 | Pasted job description extraction and normalization | **Done** |
 | 4 | Safe URL fetching, JSON-LD and ATS extraction, browser fallback | Planned |
 | 5 | Versioned analysis schema, provider boundary, prompt assets, output validation | Planned |
 | 6 | Evidence mapping and the deterministic score calculator | Planned |

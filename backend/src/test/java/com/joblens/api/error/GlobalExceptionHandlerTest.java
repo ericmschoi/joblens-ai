@@ -1,12 +1,13 @@
 package com.joblens.api.error;
 
-import com.joblens.error.ApiException;
-import com.joblens.error.ErrorCode;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.joblens.error.ApiException;
+import com.joblens.error.ErrorCode;
 
 import com.joblens.config.JoblensProperties;
 import jakarta.validation.Valid;

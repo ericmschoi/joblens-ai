@@ -1,6 +1,7 @@
 package com.joblens.resume;
 
 import com.joblens.document.ExtractionWarning;
+import com.joblens.document.ReviewStatus;
 import com.joblens.resume.model.CandidateProfile;
 import java.util.List;
 
@@ -14,12 +15,12 @@ import java.util.List;
  * a heuristic reading of the text and can be wrong or incomplete; the text is what was actually in
  * the document, and it is the fallback the user reviews against.
  *
- * <p>{@code reviewStatus} is always {@link ResumeReviewStatus#REVIEW_REQUIRED}. Extraction cannot
+ * <p>{@code reviewStatus} is always {@link ReviewStatus#REVIEW_REQUIRED}. Extraction cannot
  * produce a confirmed resume.
  */
 public record ResumeExtractionResult(
         String extractionId,
-        ResumeReviewStatus reviewStatus,
+        ReviewStatus reviewStatus,
         EvidenceAbsencePolicy evidenceAbsencePolicy,
         String rawText,
         List<ExtractedResumeText.PageInfo> pages,

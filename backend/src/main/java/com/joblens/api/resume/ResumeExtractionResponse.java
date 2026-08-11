@@ -1,10 +1,10 @@
 package com.joblens.api.resume;
 
 import com.joblens.document.ExtractionWarning;
+import com.joblens.document.ReviewStatus;
 import com.joblens.resume.EvidenceAbsencePolicy;
 import com.joblens.resume.ExtractedResumeText;
 import com.joblens.resume.ResumeExtractionResult;
-import com.joblens.resume.ResumeReviewStatus;
 import com.joblens.resume.model.CandidateProfile;
 import java.util.List;
 
@@ -23,7 +23,7 @@ import java.util.List;
 public record ResumeExtractionResponse(
         String schemaVersion,
         String extractionId,
-        ResumeReviewStatus reviewStatus,
+        ReviewStatus reviewStatus,
         EvidenceAbsencePolicy evidenceAbsencePolicy,
         String rawText,
         List<ExtractedResumeText.PageInfo> pages,
