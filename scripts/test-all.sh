@@ -24,4 +24,10 @@ echo "== frontend: test =="
 echo "== frontend: production build =="
 (cd "$ROOT_DIR/frontend" && npm run build)
 
+echo "== infrastructure: typecheck, test, synth =="
+# Synthesis embeds the built SPA, which the frontend build above has just produced. No AWS
+# credentials are involved: the stacks contain no context lookups.
+(cd "$ROOT_DIR/infrastructure" && npm run typecheck && npm test && npx cdk synth --quiet \
+    -c imageTag=sha-local -c budgetAlertEmail=local@example.com)
+
 echo "All checks passed."

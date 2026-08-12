@@ -60,6 +60,7 @@ directly.
 ## Layout
 
 ```
+infrastructure/ AWS CDK app: registry stack, application stack, template tests
 backend/    Spring Boot modular monolith
   error/      ErrorCode catalogue and ApiException (shared kernel, no HTTP types)
   api/        thin controllers, DTOs, RFC 9457 problem details
@@ -120,6 +121,16 @@ this automatically on macOS.
 every pull request. It holds no cloud credentials and `permissions: contents: read`, so a merge
 cannot deploy anything or create a billable resource. Deployment is a separate, manually dispatched
 workflow. Actions are pinned to commit SHAs, the same rule the Dockerfiles apply to base images.
+
+## Infrastructure
+
+`infrastructure/` is a CDK app in TypeScript. `npm test` there asserts properties of the synthesized
+CloudFormation — no NAT gateway, no load balancer, no VPC, no public function URL, no cached API
+response, bounded log retention, destroy-on-delete everywhere. Synthesis needs no AWS credentials
+because the stacks contain no context lookups; keep it that way.
+
+`.github/workflows/deploy.yml` is manual dispatch only and needs a role that does not exist yet.
+Nothing has been deployed. Do not deploy without an explicit cost and deployment confirmation.
 
 ## Repository etiquette
 

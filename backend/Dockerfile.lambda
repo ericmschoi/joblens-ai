@@ -1,0 +1,50 @@
+# The same application, packaged for AWS Lambda.
+#
+# It is the identical jar built the identical way; the only addition is the AWS Lambda Web Adapter,
+# an extension that speaks the Lambda runtime API on one side and plain HTTP to the application on
+# the other. Nothing in the application knows it is running in Lambda, which is the point: the
+# container from Dockerfile and the container from this file behave the same way.
+#
+# Kept separate from Dockerfile so the ordinary image carries no Lambda-specific weight.
+
+# --- build ------------------------------------------------------------------------------------
+FROM eclipse-temurin:25.0.3_9-jdk-noble@sha256:735baf2edc6cd6485240144a84fa4db142b9a6f47b4eb4080f31058d200f9813 AS build
+
+WORKDIR /workspace
+
+COPY gradle gradle
+COPY gradlew settings.gradle.kts build.gradle.kts gradle.lockfile ./
+RUN ./gradlew --no-daemon --quiet dependencies --configuration runtimeClasspath
+
+COPY src src
+RUN ./gradlew --no-daemon clean bootJar -x test
+
+# --- runtime ----------------------------------------------------------------------------------
+FROM eclipse-temurin:25.0.3_9-jre-noble@sha256:fbcf915c585659b30eb766ada4d6d7cfc9ec1040bf521e95bf61b10a25af73db AS runtime
+
+# Pinned by digest like every other base image here.
+COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.9.1@sha256:46d6625e68cbbdd2efab4a20245977664513f13ffef47915b000d431adcea0b4 \
+     /lambda-adapter /opt/extensions/lambda-adapter
+
+RUN groupadd --system --gid 10001 joblens \
+ && useradd --system --uid 10001 --gid joblens --home /app --shell /usr/sbin/nologin joblens
+
+WORKDIR /app
+COPY --from=build --chown=root:root --chmod=444 /workspace/build/libs/*.jar /app/joblens.jar
+
+USER 10001:10001
+
+# The adapter waits for the application to answer on this port and path before reporting the
+# function ready, so a cold start never routes a request into a half-started context.
+ENV AWS_LWA_PORT=8080 \
+    AWS_LWA_READINESS_CHECK_PATH=/actuator/health \
+    AWS_LWA_INVOKE_MODE=buffered
+
+# Tiered compilation stopped at C1 trades peak throughput for startup, which is the right trade for
+# a function that starts far more often than it runs hot.
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError -XX:TieredStopAtLevel=1 -Djava.security.egd=file:/dev/urandom"
+
+# No credentials, no account identifiers, no endpoint hosts. The default provider is the in-process
+# fake, so this image runs with no API key at all.
+
+ENTRYPOINT ["java", "-jar", "/app/joblens.jar"]

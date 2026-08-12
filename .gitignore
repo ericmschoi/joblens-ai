@@ -33,3 +33,5 @@ build/
 # generated programmatically instead - see docs/testing notes in the README.
 *.pdf
 /local-fixtures/
+infrastructure/cdk.out/
+infrastructure/node_modules/
