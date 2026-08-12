@@ -2,7 +2,7 @@
 
 Compare a resume with a job posting and get an evidence-based, explainable fit analysis.
 
-> **Status: Phase 10 of 13.** The product works end to end locally with no API key: upload a PDF
+> **Status: Phase 11 of 13.** The product works end to end locally with no API key: upload a PDF
 > resume, add a job description by URL or paste, review and correct both, and read a scored,
 > evidence-backed analysis. Packaging, CI and deployment are what remain. Nothing in this README
 > describes behaviour that does not exist; unbuilt work is marked as planned.
@@ -150,6 +150,15 @@ cd backend && ./gradlew bootRun
 cd frontend && npm ci && npm run dev
 ```
 
+Or run the built images, which is the shape a deployment takes:
+
+```bash
+docker compose up --build
+```
+
+The whole product is then at <http://localhost:8081>, with the backend reachable only through it.
+Details, including what is deliberately absent from the images, are in [docs/docker.md](docs/docker.md).
+
 ### Try the API directly
 
 The endpoint contract, the error catalogue and the operational limits are in
@@ -265,7 +274,7 @@ is exercised with user-event.
 | 8 | Results UI: score guide, accessible decimal stars, evidence, guidance | **Done** |
 | 9 | End-to-end hardening, calibration fixtures, documentation | **Done** |
 | 10 | Provider evaluation harness and acceptance criteria | **Done** |
-| 11 | Docker packaging | Planned |
+| 11 | Docker packaging | **Done** |
 | 12 | GitHub Actions CI/CD | Planned |
 | 13 | AWS architecture and deployment | Planned |
 

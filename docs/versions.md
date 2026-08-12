@@ -109,3 +109,17 @@ v2.7.0, which are well behind current releases. Upgrade before starting the Dock
 When that phase starts: use the official Eclipse Temurin 25 image, pin base images by tag *and*
 digest, separate build and runtime stages, run as a non-root user, keep no build tooling in the
 runtime image, and keep the container's Java major version identical to the local build.
+
+
+## Container base images
+
+Pinned by tag and digest in `backend/Dockerfile` and `frontend/Dockerfile`. A digest cannot be
+moved, so a base-image change is always a visible commit.
+
+| Image | Version | Why |
+|---|---|---|
+| `eclipse-temurin` | `25.0.3_9-jdk-noble` / `25.0.3_9-jre-noble` | Newest Temurin **25 LTS** published to Docker Hub as of 2026-08-11. Local development uses the 25.0.4+7 tarball, which has no image yet; both are Java 25 LTS. Ubuntu 24.04 LTS base. |
+| `node` | `24.19.0-trixie-slim` | Exactly the Node 24 LTS pinned for local development. |
+| `nginx` | `1.29.8-alpine3.23` | Newest stable 1.29.x. Static file serving and a reverse proxy only. |
+
+No `latest`, no floating major or minor tags, and no alpine-edge or rolling bases.

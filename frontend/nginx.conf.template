@@ -1,0 +1,48 @@
+# Serves the built SPA and forwards /api to the backend, so the browser stays same-origin and CORS
+# never enters the picture in a deployed environment.
+
+server {
+    listen 8081;
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # These are set per location rather than for the whole server: the API sets its own, and
+    # add_header at server level would duplicate every one of them on a proxied response.
+
+    # Hashed asset filenames make these immutable. index.html must never be cached, or a deploy
+    # leaves people on the previous bundle.
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable" always;
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+
+    location = /index.html {
+        add_header Cache-Control "no-store" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Referrer-Policy "no-referrer" always;
+    }
+
+    location /api/ {
+        proxy_pass http://${JOBLENS_BACKEND}/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # A resume upload is up to 10 MiB; the backend enforces the real limit.
+        client_max_body_size 13m;
+        proxy_read_timeout 120s;
+    }
+
+    # Single-page app: unknown paths are routes, not missing files.
+    location / {
+        try_files $uri $uri/ /index.html;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Referrer-Policy "no-referrer" always;
+    }
+}

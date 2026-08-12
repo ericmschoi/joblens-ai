@@ -1,0 +1,39 @@
+# The whole product, locally, from images rather than from a dev server.
+#
+#   docker compose up --build
+#   open http://localhost:8081
+#
+# This is what the deployed shape looks like: the browser talks only to the frontend, which serves
+# the SPA and forwards /api to the backend. The backend is not published to the host.
+
+services:
+  backend:
+    build:
+      context: ./backend
+    environment:
+      # The in-process fake. The image runs with no API key and makes no outbound AI call.
+      JOBLENS_ANALYSIS_PROVIDER: fake
+      # Same-origin through the frontend, so no browser ever sends a cross-origin request. The
+      # value is still set explicitly rather than left to a default.
+      JOBLENS_CORS_ALLOWED_ORIGINS: http://localhost:8081
+    expose:
+      - "8080"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      JOBLENS_BACKEND: backend:8080
+    ports:
+      - "8081:8081"
+    depends_on:
+      - backend
+    security_opt:
+      - no-new-privileges:true
