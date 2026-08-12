@@ -2,11 +2,11 @@
 
 Compare a resume with a job posting and get an evidence-based, explainable fit analysis.
 
-> **Status: Phase 4a of 13.** The repository builds, tests and runs locally. A PDF resume and a job
+> **Status: Phase 4b of 13.** The repository builds, tests and runs locally. A PDF resume and a job
 > description — pasted, or read from a public URL — can be extracted, reviewed, corrected and
-> confirmed through the API. Applicant-tracking-system extractors, JavaScript rendering, the analysis
-> itself, scoring and the UI are not implemented yet. Nothing in this README describes behaviour that
-> does not exist; unbuilt work is marked as planned.
+> confirmed through the API, including postings on Greenhouse, Lever, Ashby and Workday. The
+> analysis itself, scoring and the UI are not implemented yet. Nothing in this README describes
+> behaviour that does not exist; unbuilt work is marked as planned.
 
 ## What it does
 
@@ -106,7 +106,7 @@ research, user preference profiles, and any language other than English.
 |---|---|
 | Backend | Java 25 LTS (Temurin 25.0.4+7), Spring Boot 4.1.0, Gradle 9.7.0 (Kotlin DSL) |
 | Frontend | Node.js 24.19.0 LTS, React 19.2.8, TypeScript 6.0.3, Vite 8.2.1, CSS Modules + design tokens |
-| Extraction | Apache PDFBox 3.0.8; Jsoup and Playwright for Java *(planned, phases 3-4)* |
+| Extraction | Apache PDFBox 3.0.8, jsoup 1.23.1, Apache HttpClient 5, Playwright for Java 1.62.0 |
 | AI | Provider-neutral boundary; deterministic in-process fake is the default. No provider chosen yet. |
 | Testing | JUnit 5, ArchUnit, Vitest, Testing Library, axe-core |
 
@@ -161,6 +161,13 @@ cd backend && ./gradlew build
 
 ```bash
 cd frontend && npm run typecheck && npm run lint && npm test && npm run build
+```
+
+Tests that drive a real browser are excluded from the default run because they download Chromium
+and are far slower:
+
+```bash
+cd backend && ./gradlew browserTest
 ```
 
 ### Environment variables
@@ -218,7 +225,7 @@ is exercised with user-event.
 | 2 | Secure PDF validation and extraction, resume preview contract | **Done** |
 | 3 | Pasted job description extraction and normalization | **Done** |
 | 4a | Safe URL fetching, JSON-LD and generic HTML extraction | **Done** |
-| 4b | Applicant-tracking-system extractors and a controlled browser fallback | Planned |
+| 4b | Applicant-tracking-system extractors and a controlled browser fallback | **Done** |
 | 5 | Versioned analysis schema, provider boundary, prompt assets, output validation | Planned |
 | 6 | Evidence mapping and the deterministic score calculator | Planned |
 | 7 | Upload, job input and extraction-review UI | Planned |

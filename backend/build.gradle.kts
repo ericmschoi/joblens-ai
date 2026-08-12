@@ -33,6 +33,7 @@ dependencies {
     // DnsResolver, which is what makes "resolve, validate, then connect to the validated address"
     // possible - the JDK client offers no equivalent hook.
     implementation("org.apache.httpcomponents.client5:httpclient5")
+    implementation("com.microsoft.playwright:playwright:1.62.0")
 
     testImplementation("org.springframework.boot:spring-boot-starter-actuator-test")
     testImplementation("org.springframework.boot:spring-boot-starter-validation-test")
@@ -47,11 +48,25 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
     testLogging {
         events("passed", "skipped", "failed")
         showStandardStreams = false
     }
+}
+
+tasks.named<Test>("test") {
+    // Browser tests download a Chromium build and are far slower, so they stay out of the
+    // default loop. Run them with ./gradlew browserTest.
+    useJUnitPlatform { excludeTags("browser") }
+}
+
+tasks.register<Test>("browserTest") {
+    group = "verification"
+    description = "Runs the tests that need a real browser."
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    useJUnitPlatform { includeTags("browser") }
+    shouldRunAfter(tasks.named("test"))
 }
 
 // Resolves every lockable configuration so that `--write-locks` produces a complete lockfile set.

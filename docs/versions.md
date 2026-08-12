@@ -30,6 +30,7 @@ Java 26 and Node.js 26 exist but are not LTS, so they are not used as project ru
 | Apache PDFBox | 3.0.8 | Phase 2 |
 | jsoup | 1.23.1 | Phase 4a |
 | Apache HttpClient 5 | 5.6.1 (BOM-managed, declared without a version) | Phase 4a |
+| Playwright for Java | 1.62.0 | Phase 4b |
 | ArchUnit (JUnit 5) | 1.5.0 | Phase 1 |
 
 JUnit, AssertJ, Jackson, Tomcat, Logback and Apache HttpClient are managed by the Spring Boot BOM and

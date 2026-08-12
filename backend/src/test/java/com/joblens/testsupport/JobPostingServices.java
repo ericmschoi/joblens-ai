@@ -10,6 +10,7 @@ import com.joblens.jobposting.fetch.BlockedAddressPolicy;
 import com.joblens.jobposting.fetch.HostResolver;
 import com.joblens.jobposting.fetch.SafeHttpFetcher;
 import com.joblens.jobposting.fetch.SafeUrlValidator;
+import com.joblens.jobposting.render.PlaywrightPageRenderer;
 import tools.jackson.databind.json.JsonMapper;
 
 /** Assembles the job-posting pipeline for tests that need it without a Spring context. */
@@ -32,8 +33,23 @@ public final class JobPostingServices {
         return build(properties, HostResolver.system(), true);
     }
 
+    /** For tests that need to observe, or stand in for, the browser renderer. */
+    public static JobPostingExtractionService reachingLoopback(JoblensProperties properties,
+            java.util.function.BiFunction<JoblensProperties, BlockedAddressPolicy, PlaywrightPageRenderer>
+                    rendererFactory) {
+        return build(properties, HostResolver.system(), true, rendererFactory);
+    }
+
     private static JobPostingExtractionService build(JoblensProperties properties, HostResolver resolver,
             boolean allowLoopback) {
+        return build(properties, resolver, allowLoopback,
+                (props, addresses) -> new PlaywrightPageRenderer(props, addresses, resolver));
+    }
+
+    private static JobPostingExtractionService build(JoblensProperties properties, HostResolver resolver,
+            boolean allowLoopback,
+            java.util.function.BiFunction<JoblensProperties, BlockedAddressPolicy, PlaywrightPageRenderer>
+                    rendererFactory) {
         BlockedAddressPolicy addresses = new BlockedAddressPolicy(allowLoopback);
         SafeUrlValidator urlValidator = new SafeUrlValidator(properties, addresses, resolver);
         SafeHttpFetcher fetcher = new SafeHttpFetcher(properties, urlValidator, addresses, resolver);
@@ -45,6 +61,7 @@ public final class JobPostingServices {
                 urlValidator,
                 fetcher,
                 new PageContentExtractor(JsonMapper.builder().build()),
-                new PageAccessAssessor());
+                new PageAccessAssessor(),
+                rendererFactory.apply(properties, addresses));
     }
 }

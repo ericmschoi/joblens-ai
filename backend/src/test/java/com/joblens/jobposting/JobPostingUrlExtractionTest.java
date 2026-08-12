@@ -33,7 +33,8 @@ class JobPostingUrlExtractionTest {
         int port = Integer.parseInt(server.url("/").split(":")[2].replace("/", ""));
         JoblensProperties properties = TestProperties.withJobFetch(new JoblensProperties.JobFetch(
                 Duration.ofSeconds(2), Duration.ofSeconds(5), Duration.ofSeconds(10), 512 * 1024, 3,
-                List.of(80, 443, port), 4, "JobLensBot/0.1 (+https://joblens.local/bot)"));
+                List.of(80, 443, port), 4, "JobLensBot/0.1 (+https://joblens.local/bot)",
+                new JoblensProperties.JobFetch.Browser(false, Duration.ofSeconds(15), 1)));
         service = JobPostingServices.reachingLoopback(properties);
     }
 

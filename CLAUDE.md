@@ -64,7 +64,7 @@ backend/    Spring Boot modular monolith
   error/      ErrorCode catalogue and ApiException (shared kernel, no HTTP types)
   api/        thin controllers, DTOs, RFC 9457 problem details
   resume/     PDF validation, extraction, normalization
-  jobposting/ pasted-text normalization and parsing; safe URL fetching (phase 4)
+  jobposting/ pasted text, safe URL fetching, ATS extractors, browser rendering
   document/   review status, fingerprint, provenance, warnings, injection detection;
               PII redaction (phase 5)
   analysis/   provider boundary, prompt assets, output validation (phase 5)
@@ -86,7 +86,8 @@ separate packages and are not combined into one service.
 ```
 
 ```bash
-cd backend && ./gradlew build            # compile + test
+cd backend && ./gradlew build            # compile + test (browser tests excluded)
+cd backend && ./gradlew browserTest      # the @Tag("browser") tests, needs Chromium
 cd backend && ./gradlew bootRun          # run the API
 cd backend && ./gradlew resolveAndLockAll --write-locks   # after changing dependencies
 ```
@@ -116,11 +117,12 @@ this automatically on macOS.
 ## Repository etiquette
 
 - Work on a `feat/phase-N-<slug>` branch, never directly on `main`.
-- **Each phase ends at an approval gate.** Implement, then post a summary of what changed, what was
-  verified and how, and anything the reviewer should know. **Wait for an explicit go-ahead**, then
-  commit, push, open a pull request, merge into `main`, and only then start the next phase.
-  Implementation does not need approval; shipping does. `main` is the record of completed phases, so
-  no phase is built on top of another phase's unmerged branch.
+- **Each phase ships itself.** Implement, verify, then commit, push, open a pull request, merge into
+  `main`, and start the next phase without waiting. `main` is the record of completed phases, so no
+  phase is built on top of another phase's unmerged branch. Report what changed, what was verified
+  and how, and any real limitation — as part of shipping, not instead of it.
+- **One gate remains: spending money on AWS.** Synthesise the infrastructure freely, but stop and
+  get an explicit cost and deployment confirmation before deploying anything to a real account.
 - Never commit real resumes or any personal document. `*.pdf` is git-ignored on purpose. Test
   fixtures are generated programmatically so the repository stays free of personal data.
 - Secrets live in environment variables and never in the repository or the client bundle. The

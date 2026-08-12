@@ -48,6 +48,28 @@ final class HtmlToText {
         return toText(Jsoup.parseBodyFragment(Jsoup.clean(html, Safelist.relaxed())).body());
     }
 
+    /** Reads the first selector that matches, for boards whose layout is known. */
+    static java.util.Optional<String> fromSelectors(Document document, List<String> selectors) {
+        NOISE_SELECTORS.forEach(selector -> document.select(selector).remove());
+        return selectors.stream()
+                .map(document::selectFirst)
+                .filter(java.util.Objects::nonNull)
+                .map(HtmlToText::toText)
+                .filter(text -> !text.isBlank())
+                .findFirst();
+    }
+
+    /** A short field such as a title or a location, where only the plain text matters. */
+    static String firstMatchingText(Document document, List<String> selectors) {
+        return selectors.stream()
+                .map(document::selectFirst)
+                .filter(java.util.Objects::nonNull)
+                .map(element -> element.text().strip())
+                .filter(text -> !text.isBlank())
+                .findFirst()
+                .orElse(null);
+    }
+
     private static String toText(Element root) {
         StringBuilder text = new StringBuilder();
         appendChildren(root, text);

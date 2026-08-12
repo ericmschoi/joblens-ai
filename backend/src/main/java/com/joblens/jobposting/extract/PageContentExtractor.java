@@ -1,10 +1,12 @@
 package com.joblens.jobposting.extract;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,10 +17,12 @@ import tools.jackson.databind.ObjectMapper;
 /**
  * Reads a job posting out of a fetched page, preferring the site's own structured data.
  *
- * <p>Many job boards publish schema.org {@code JobPosting} data so search engines can index them
- * accurately. When it is there it is far better than anything guessed from markup, because the site
- * has already said which text is the title, the employer and the description. Ordinary HTML reading
- * is the fallback.
+ * <p>Three readings are tried in order. A board JobLens knows the layout of gets a dedicated one,
+ * because those pages bury the description in application forms and related-job lists. Otherwise the
+ * site's own schema.org {@code JobPosting} data is used, which is better than anything guessed from
+ * markup because the site has already said which text is which. Ordinary HTML reading is the last
+ * resort, and any strategy that comes up short falls through to the next rather than returning
+ * something wrong.
  */
 @Component
 public class PageContentExtractor {
@@ -32,8 +36,38 @@ public class PageContentExtractor {
         this.objectMapper = objectMapper;
     }
 
-    public ExtractedPageContent extract(String html) {
-        return fromJsonLd(html).orElseGet(() -> ExtractedPageContent.generic(HtmlToText.fromDocument(html)));
+    /** Enough text that a board-specific reading is worth trusting over the generic one. */
+    private static final int USABLE_ATS_TEXT = 200;
+
+    public ExtractedPageContent extract(String html, URI url) {
+        return fromAts(html, url)
+                .or(() -> fromJsonLd(html))
+                .orElseGet(() -> ExtractedPageContent.generic(HtmlToText.fromDocument(html)));
+    }
+
+    private static Optional<ExtractedPageContent> fromAts(String html, URI url) {
+        Optional<AtsSite> site = url == null ? Optional.empty() : AtsSite.forUrl(url);
+        if (site.isEmpty()) {
+            return Optional.empty();
+        }
+
+        AtsSite ats = site.get();
+        Document document = Jsoup.parse(html);
+        Optional<String> body = HtmlToText.fromSelectors(document, ats.bodySelectors())
+                .filter(text -> text.length() >= USABLE_ATS_TEXT);
+        if (body.isEmpty()) {
+            // The board's markup changed, or the page has not rendered. Let the next strategy try.
+            return Optional.empty();
+        }
+
+        return Optional.of(new ExtractedPageContent(
+                ats.strategy(),
+                body.get(),
+                HtmlToText.firstMatchingText(document, ats.titleSelectors()),
+                ats.companyFrom(url).orElse(null),
+                HtmlToText.firstMatchingText(document, ats.locationSelectors()),
+                null,
+                null));
     }
 
     private Optional<ExtractedPageContent> fromJsonLd(String html) {
