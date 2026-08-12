@@ -50,8 +50,11 @@ public class SafeHttpFetcher {
     private static final List<String> ALLOWED_CONTENT_TYPES = List.of(
             "text/html", "application/xhtml+xml", "text/plain", "application/json", "application/ld+json");
 
-    private static final String ACCEPT =
-            "text/html,application/xhtml+xml;q=0.9,application/json;q=0.8,text/plain;q=0.7";
+    /**
+     * HTML only. Offering JSON and plain text as alternatives made content-negotiating boards
+     * answer with {@code application/xml}, which is not a page and gets rejected downstream.
+     */
+    private static final String ACCEPT = "text/html,application/xhtml+xml;q=0.9";
 
     private final JoblensProperties.JobFetch limits;
     private final SafeUrlValidator urlValidator;

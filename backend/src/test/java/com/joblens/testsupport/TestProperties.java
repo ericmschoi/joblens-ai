@@ -34,6 +34,10 @@ public final class TestProperties {
         return build(defaultResume(), defaultJobPosting(), jobFetch);
     }
 
+    public static JoblensProperties.JobFetch.Browser browserDisabled() {
+        return new JoblensProperties.JobFetch.Browser(false, Duration.ofSeconds(15), 1);
+    }
+
     public static JoblensProperties.JobFetch defaultJobFetch() {
         return new JoblensProperties.JobFetch(
                 Duration.ofSeconds(2),
@@ -43,7 +47,8 @@ public final class TestProperties {
                 3,
                 List.of(80, 443),
                 4,
-                "JobLensBot/0.1 (+https://joblens.local/bot)");
+                "JobLensBot/0.1 (+https://joblens.local/bot)",
+                new JoblensProperties.JobFetch.Browser(false, Duration.ofSeconds(15), 1));
     }
 
     public static JoblensProperties.Resume defaultResume() {

@@ -45,7 +45,8 @@ class SafeHttpFetcherTest {
     private JoblensProperties propertiesWith(long maxBytes, Duration responseTimeout, int maxRedirects) {
         JoblensProperties.JobFetch fetch = new JoblensProperties.JobFetch(
                 Duration.ofSeconds(2), responseTimeout, Duration.ofSeconds(10), maxBytes, maxRedirects,
-                List.of(80, 443, port()), 4, "JobLensBot/0.1");
+                List.of(80, 443, port()), 4, "JobLensBot/0.1",
+                new JoblensProperties.JobFetch.Browser(false, Duration.ofSeconds(15), 1));
         return com.joblens.testsupport.TestProperties.withJobFetch(fetch);
     }
 

@@ -20,6 +20,10 @@ public record ExtractedPageContent(
     public enum Strategy {
         /** schema.org JobPosting data the site published for search engines. The most reliable source. */
         JSON_LD,
+        ATS_GREENHOUSE,
+        ATS_LEVER,
+        ATS_ASHBY,
+        ATS_WORKDAY,
         /** Ordinary HTML, read structurally. */
         GENERIC_HTML
     }

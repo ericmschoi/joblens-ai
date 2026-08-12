@@ -7,6 +7,9 @@ import tools.jackson.databind.json.JsonMapper;
 
 class PageContentExtractorTest {
 
+    private static final java.net.URI GENERIC_URL =
+            java.net.URI.create("https://careers.example.com/jobs/42");
+
     private final PageContentExtractor extractor = new PageContentExtractor(JsonMapper.builder().build());
 
     private static String pageWith(String head, String body) {
@@ -32,7 +35,7 @@ class PageContentExtractorTest {
                 </script>
                 """;
 
-        ExtractedPageContent content = extractor.extract(pageWith(jsonLd, "<p>Marketing fluff</p>"));
+        ExtractedPageContent content = extractor.extract(pageWith(jsonLd, "<p>Marketing fluff</p>"), GENERIC_URL);
 
         assertThat(content.strategy()).isEqualTo(ExtractedPageContent.Strategy.JSON_LD);
         assertThat(content.title()).isEqualTo("Senior Backend Engineer");
@@ -54,7 +57,7 @@ class PageContentExtractorTest {
                 </script>
                 """;
 
-        ExtractedPageContent content = extractor.extract(pageWith(jsonLd, "<p>fluff</p>"));
+        ExtractedPageContent content = extractor.extract(pageWith(jsonLd, "<p>fluff</p>"), GENERIC_URL);
 
         assertThat(content.strategy()).isEqualTo(ExtractedPageContent.Strategy.JSON_LD);
         assertThat(content.title()).isEqualTo("Platform Engineer");
@@ -70,7 +73,7 @@ class PageContentExtractorTest {
                 </script>
                 """;
 
-        assertThat(extractor.extract(pageWith(jsonLd, "")).location()).isEqualTo("Remote");
+        assertThat(extractor.extract(pageWith(jsonLd, ""), GENERIC_URL).location()).isEqualTo("Remote");
     }
 
     @Test
@@ -80,7 +83,7 @@ class PageContentExtractorTest {
                 + "<h2>Required Qualifications</h2><ul><li>Strong Java</li></ul>"
                 + "<p>" + "Filler to make this page long enough to look like content. ".repeat(6) + "</p></main>";
 
-        ExtractedPageContent content = extractor.extract(pageWith(broken, body));
+        ExtractedPageContent content = extractor.extract(pageWith(broken, body), GENERIC_URL);
 
         assertThat(content.strategy()).isEqualTo(ExtractedPageContent.Strategy.GENERIC_HTML);
         assertThat(content.text()).contains("Responsibilities", "- Build services", "- Strong Java");
@@ -91,7 +94,7 @@ class PageContentExtractorTest {
         String body = "<main><ul><li>Strong Java</li><li>Spring Boot</li><li>AWS</li></ul>"
                 + "<p>" + "Padding so that this container is chosen as the content. ".repeat(6) + "</p></main>";
 
-        String text = extractor.extract(pageWith("", body)).text();
+        String text = extractor.extract(pageWith("", body), GENERIC_URL).text();
 
         assertThat(text.lines().filter(line -> line.startsWith("- ")))
                 .as("merging two bullets would merge two requirements")
@@ -105,7 +108,7 @@ class PageContentExtractorTest {
                 + "<p>" + "Real posting content that should survive extraction. ".repeat(6) + "</p></main>"
                 + "<footer>Copyright Acme</footer>";
 
-        String text = extractor.extract(pageWith("", body)).text();
+        String text = extractor.extract(pageWith("", body), GENERIC_URL).text();
 
         assertThat(text).contains("Strong Java");
         assertThat(text).doesNotContain("window.tracking", "Home Jobs About", "Copyright Acme");
@@ -120,7 +123,7 @@ class PageContentExtractorTest {
                 </script>
                 """;
 
-        String text = extractor.extract(pageWith(jsonLd, "")).text();
+        String text = extractor.extract(pageWith(jsonLd, ""), GENERIC_URL).text();
 
         assertThat(text).doesNotContain("<", "onerror", "alert(");
     }

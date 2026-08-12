@@ -58,6 +58,12 @@ joblens:
     allowed-ports: [80, 443]
     max-concurrent-fetches: 4
     user-agent: JobLensBot/0.1 (+https://joblens.local/bot)
+    browser:
+      # Off by default. Rendering is only ever used for pages that need JavaScript, never to get
+      # past a bot check, a sign-in wall, a 403 or a 429.
+      enabled: false
+      timeout: 15s
+      max-concurrent-renders: 1
   cors:
     # The local Vite dev server. Production origins are configured per environment.
     allowed-origins:

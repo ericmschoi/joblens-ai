@@ -38,7 +38,15 @@ public record JoblensProperties(
             @Positive int maxRedirects,
             @NotEmpty List<Integer> allowedPorts,
             @Positive int maxConcurrentFetches,
-            @NotEmpty String userAgent) {}
+            @NotEmpty String userAgent,
+            @Valid Browser browser) {
+
+        /** Rendering is opt-in. A deployment that never sets this never launches a browser. */
+        public record Browser(
+                boolean enabled,
+                Duration timeout,
+                @Positive int maxConcurrentRenders) {}
+    }
 
     public record Cors(@NotEmpty List<String> allowedOrigins) {}
 

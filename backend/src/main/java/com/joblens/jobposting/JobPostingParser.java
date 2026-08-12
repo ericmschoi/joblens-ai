@@ -41,7 +41,10 @@ public class JobPostingParser {
                     "nice to haves", "bonus points", "bonus", "desired qualifications", "assets",
                     "it's a plus", "pluses", "good to have"),
             Kind.AMBIGUOUS_QUALIFICATIONS, List.of("qualifications", "skills", "skills and experience",
-                    "experience", "what you bring", "who you are", "about you", "you have"),
+                    "experience", "what you bring", "who you are", "about you", "you have",
+                    "qualifications and fit", "requirements and qualifications", "technical skills",
+                    "what you bring to the table", "your experience", "your background",
+                    "who you'll be", "who you will be", "experience and skills"),
             Kind.ABOUT, List.of("about us", "about the company", "about the role", "about the team",
                     "who we are", "overview", "the opportunity", "company overview"),
             Kind.COMPENSATION, List.of("compensation", "salary", "pay range", "salary range",
@@ -165,7 +168,9 @@ public class JobPostingParser {
             return Optional.empty();
         }
 
-        String candidate = stripped.replaceAll("[:\\s]+$", "").toLowerCase(Locale.ROOT);
+        // Boards write "Qualifications & Fit" as often as "Qualifications and Fit".
+        String candidate = stripped.replaceAll("[:\\s]+$", "").toLowerCase(Locale.ROOT)
+                .replace(" & ", " and ");
         for (Map.Entry<Kind, List<String>> entry : HEADINGS.entrySet()) {
             if (entry.getValue().contains(candidate)) {
                 return Optional.of(entry.getKey());

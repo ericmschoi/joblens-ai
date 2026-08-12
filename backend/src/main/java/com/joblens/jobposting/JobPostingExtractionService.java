@@ -12,6 +12,7 @@ import com.joblens.jobposting.fetch.FetchedPage;
 import com.joblens.jobposting.fetch.SafeHttpFetcher;
 import com.joblens.jobposting.fetch.SafeUrlValidator;
 import com.joblens.jobposting.model.JobPosting;
+import com.joblens.jobposting.render.PlaywrightPageRenderer;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,10 +40,12 @@ public class JobPostingExtractionService {
     private final SafeHttpFetcher fetcher;
     private final PageContentExtractor pageContentExtractor;
     private final PageAccessAssessor pageAccessAssessor;
+    private final PlaywrightPageRenderer renderer;
 
     public JobPostingExtractionService(JoblensProperties properties, JobPostingTextNormalizer normalizer,
             JobPostingParser parser, SafeUrlValidator urlValidator, SafeHttpFetcher fetcher,
-            PageContentExtractor pageContentExtractor, PageAccessAssessor pageAccessAssessor) {
+            PageContentExtractor pageContentExtractor, PageAccessAssessor pageAccessAssessor,
+            PlaywrightPageRenderer renderer) {
         this.limits = properties.jobPosting();
         this.normalizer = normalizer;
         this.parser = parser;
@@ -50,6 +53,7 @@ public class JobPostingExtractionService {
         this.fetcher = fetcher;
         this.pageContentExtractor = pageContentExtractor;
         this.pageAccessAssessor = pageAccessAssessor;
+        this.renderer = renderer;
     }
 
     public JobPostingExtractionResult extractFromText(String pastedText) {
@@ -70,12 +74,24 @@ public class JobPostingExtractionService {
 
         SafeUrlValidator.ValidatedUrl target = urlValidator.validate(url);
         FetchedPage page = fetcher.fetch(target);
-        ExtractedPageContent content = pageContentExtractor.extract(page.body());
-        String normalized = normalizer.normalize(content.text());
 
+        ExtractedPageContent content = pageContentExtractor.extract(page.body(), target.uri());
+        String normalized = normalizer.normalize(content.text());
         PageAccess access = pageAccessAssessor.assess(page.body(), normalized, limits.minTextCharacters());
+        boolean rendered = false;
+
+        // Rendering is reserved for pages that genuinely need JavaScript. A bot check, a sign-in
+        // wall or an outright refusal never reaches it: those are decisions, not obstacles.
+        if (access == PageAccess.JAVASCRIPT_REQUIRED && renderer.isEnabled()) {
+            String renderedHtml = renderer.render(target);
+            content = pageContentExtractor.extract(renderedHtml, target.uri());
+            normalized = normalizer.normalize(content.text());
+            access = pageAccessAssessor.assess(renderedHtml, normalized, limits.minTextCharacters());
+            rendered = true;
+        }
+
         if (access != PageAccess.READABLE) {
-            throw refusal(access, extractionId);
+            throw refusal(access, extractionId, rendered);
         }
 
         requireUsableLength(normalized, ErrorCode.JD_EXTRACTION_INSUFFICIENT);
@@ -83,7 +99,7 @@ public class JobPostingExtractionService {
         JobPosting posting = merge(parsed.posting(), content, page.finalUrl());
 
         JobPostingExtractionResult.FetchMetadata metadata = new JobPostingExtractionResult.FetchMetadata(
-                page.finalUrl(), page.statusCode(), content.strategy(), false,
+                page.finalUrl(), page.statusCode(), content.strategy(), rendered,
                 page.redirectCount(), page.fetchMs());
 
         return result(extractionId, JobPostingExtractionResult.SourceType.URL, normalized, posting,
@@ -100,8 +116,9 @@ public class JobPostingExtractionService {
      * <p>{@code pageAccess} is logged so that pages needing rendering can be told apart from pages
      * that said no.
      */
-    private ApiException refusal(PageAccess access, String extractionId) {
-        LOG.info("job posting page not readable extractionId={} pageAccess={}", extractionId, access);
+    private ApiException refusal(PageAccess access, String extractionId, boolean rendered) {
+        LOG.info("job posting page not readable extractionId={} pageAccess={} rendered={}",
+                extractionId, access, rendered);
 
         return switch (access) {
             case BOT_CHECK -> new ApiException(ErrorCode.URL_BLOCKED_BY_SITE,
@@ -109,8 +126,10 @@ public class JobPostingExtractionService {
             case LOGIN_WALL -> new ApiException(ErrorCode.URL_LOGIN_REQUIRED,
                     "That posting is behind a sign-in page.");
             case JAVASCRIPT_REQUIRED -> new ApiException(ErrorCode.JD_EXTRACTION_INSUFFICIENT,
-                    "That page builds its content in the browser, so the page itself contained no "
-                            + "job description to read.");
+                    rendered
+                            ? "That page still had no job description after it finished loading."
+                            : "That page builds its content in the browser, so the page itself "
+                                    + "contained no job description to read.");
             case READABLE -> new ApiException(ErrorCode.INTERNAL_ERROR,
                     "The request could not be completed.");
         };
