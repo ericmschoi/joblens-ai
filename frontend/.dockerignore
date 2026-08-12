@@ -1,0 +1,6 @@
+# Keeping the build context small, and making certain no local artefact reaches a layer.
+node_modules/
+dist/
+coverage/
+*.log
+.DS_Store

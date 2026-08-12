@@ -1,0 +1,9 @@
+# Everything the image does not need. Keeping the context small is also the simplest way to be sure
+# a stray local file — a real resume, an .env — can never end up in a layer.
+build/
+.gradle/
+bin/
+out/
+*.pdf
+*.log
+.DS_Store
