@@ -114,6 +114,13 @@ this automatically on macOS.
 - Accessibility is tested, not assumed: axe-core in component tests, contrast computed from the
   token file, keyboard interaction exercised with user-event.
 
+## Continuous integration
+
+`.github/workflows/ci.yml` runs the backend build, the frontend checks and both image builds on
+every pull request. It holds no cloud credentials and `permissions: contents: read`, so a merge
+cannot deploy anything or create a billable resource. Deployment is a separate, manually dispatched
+workflow. Actions are pinned to commit SHAs, the same rule the Dockerfiles apply to base images.
+
 ## Repository etiquette
 
 - Work on a `feat/phase-N-<slug>` branch, never directly on `main`.
