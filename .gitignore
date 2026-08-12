@@ -1,5 +1,9 @@
 # macOS
 .DS_Store
+# Cloud sync on this machine writes conflicted copies as "Name 2.ext" beside the original.
+# They are duplicate top-level types and break the Java build, so they never belong in the repo.
+* 2.*
+* 3.*
 
 # Node
 node_modules/
