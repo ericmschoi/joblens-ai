@@ -3,6 +3,7 @@ import { StepIndicator } from '../components/StepIndicator';
 import { JobDescriptionStep } from '../features/jobinput/JobDescriptionStep';
 import { JobReviewStep } from '../features/review/JobReviewStep';
 import { ResumeReviewStep } from '../features/review/ResumeReviewStep';
+import { ResultsStep } from '../features/results/ResultsStep';
 import { ResumeUploadStep } from '../features/upload/ResumeUploadStep';
 import { WizardProvider, useWizard } from '../session/WizardContext';
 import type { StepId } from '../session/WizardState';
@@ -38,15 +39,7 @@ function CurrentStep() {
     case 'reviewJob':
       return <JobReviewStep />;
     case 'results':
-      return (
-        <section aria-labelledby="results-heading">
-          <h2 id="results-heading">Both documents are confirmed</h2>
-          <p>
-            The resume and the job description have been reviewed and confirmed. The analysis screen
-            arrives in the next step of the build.
-          </p>
-        </section>
-      );
+      return <ResultsStep />;
   }
 }
 

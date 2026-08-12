@@ -1,0 +1,271 @@
+.guide {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background-color: var(--color-surface-raised);
+  margin-bottom: var(--space-8);
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+}
+
+.caveat {
+  margin: var(--space-4) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.overall {
+  margin-bottom: var(--space-8);
+}
+
+.headline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.headlineScore {
+  margin: 0;
+  font-size: var(--font-size-xl);
+}
+
+.starsLarge {
+  display: inline-block;
+  width: 12rem;
+}
+
+.starsSmall {
+  display: inline-block;
+  width: 6rem;
+}
+
+.starsSvg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.starTrack {
+  fill: var(--color-border);
+}
+
+.starFill {
+  fill: var(--color-accent);
+}
+
+.badges {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-6) 0 0;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 48rem) {
+  .badges {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.badge {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+}
+
+.badge dt {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.badge dd {
+  margin: var(--space-1) 0 0;
+}
+
+.badgeNote {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.capNotice {
+  margin-top: var(--space-6);
+  border: 1px solid var(--color-warning);
+  border-left-width: 4px;
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.capNotice h3 {
+  margin-top: 0;
+}
+
+.capNumbers {
+  color: var(--color-text-muted);
+}
+
+.feedback {
+  margin-top: var(--space-6);
+}
+
+.categoryGrid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+  margin-bottom: var(--space-8);
+}
+
+@media (min-width: 60rem) {
+  .categoryGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.categoryCard {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background-color: var(--color-surface-raised);
+}
+
+.categoryHeader {
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.categoryTitle {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-lg);
+}
+
+.categoryScore {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.categoryLabel {
+  color: var(--color-text-muted);
+}
+
+.categoryWeight {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  margin-top: 0;
+}
+
+.details {
+  margin-top: var(--space-3);
+}
+
+.details summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: var(--space-2) 0;
+}
+
+.evidenceList,
+.gapList {
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.evidenceItem,
+.gapItem {
+  border-left: 3px solid var(--color-border);
+  padding-left: var(--space-3);
+}
+
+.quote {
+  margin: 0;
+  font-style: italic;
+}
+
+.evidenceMeta,
+.gapTags {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.gapText {
+  margin-bottom: var(--space-1);
+}
+
+.gapTags {
+  display: block;
+}
+
+.unknownNote {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.opportunity {
+  margin-top: var(--space-12);
+  padding-top: var(--space-6);
+  border-top: 3px solid var(--color-border);
+}
+
+.opportunityList {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-4) 0 0;
+}
+
+.opportunityItem {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+}
+
+.opportunityItem dt {
+  font-weight: 600;
+}
+
+.opportunityItem dd {
+  margin: var(--space-1) 0 0;
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.limitations {
+  margin-top: var(--space-8);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}

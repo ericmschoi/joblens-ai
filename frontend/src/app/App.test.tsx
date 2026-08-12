@@ -178,7 +178,8 @@ describe('the wizard', () => {
       .toHaveValue('Strong Java\nHands-on AWS');
 
     await user.click(screen.getByRole('button', { name: /This is correct/i }));
-    await screen.findByRole('heading', { name: /Both documents are confirmed/i });
+    await screen.findByRole('heading', { name: 'Ready to analyse' });
+    expect(screen.getByText(/Both documents are confirmed/i)).toBeInTheDocument();
 
     expect(calls.map((call) => call.path)).toEqual([
       '/resumes/extract', '/resumes/confirm', '/job-descriptions/extract', '/job-descriptions/confirm',
