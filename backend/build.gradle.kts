@@ -57,7 +57,7 @@ tasks.withType<Test>().configureEach {
 tasks.named<Test>("test") {
     // Browser tests download a Chromium build and are far slower, so they stay out of the
     // default loop. Run them with ./gradlew browserTest.
-    useJUnitPlatform { excludeTags("browser") }
+    useJUnitPlatform { excludeTags("browser", "provider-eval") }
 }
 
 tasks.register<Test>("browserTest") {
@@ -67,6 +67,18 @@ tasks.register<Test>("browserTest") {
     classpath = sourceSets["test"].runtimeClasspath
     useJUnitPlatform { includeTags("browser") }
     shouldRunAfter(tasks.named("test"))
+}
+
+// The acceptance suite a candidate AI provider must pass. Excluded from the normal build because
+// running it against a real provider sends document content off host and costs money.
+tasks.register<Test>("providerEval") {
+    group = "verification"
+    description = "Evaluates the configured analysis provider against the acceptance fixtures."
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    useJUnitPlatform { includeTags("provider-eval") }
+    shouldRunAfter(tasks.named("test"))
+    testLogging { showStandardStreams = false }
 }
 
 // Resolves every lockable configuration so that `--write-locks` produces a complete lockfile set.

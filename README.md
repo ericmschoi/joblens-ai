@@ -2,7 +2,7 @@
 
 Compare a resume with a job posting and get an evidence-based, explainable fit analysis.
 
-> **Status: Phase 9 of 13.** The product works end to end locally with no API key: upload a PDF
+> **Status: Phase 10 of 13.** The product works end to end locally with no API key: upload a PDF
 > resume, add a job description by URL or paste, review and correct both, and read a scored,
 > evidence-backed analysis. Packaging, CI and deployment are what remain. Nothing in this README
 > describes behaviour that does not exist; unbuilt work is marked as planned.
@@ -111,7 +111,7 @@ research, user preference profiles, and any language other than English.
 | Backend | Java 25 LTS (Temurin 25.0.4+7), Spring Boot 4.1.0, Gradle 9.7.0 (Kotlin DSL) |
 | Frontend | Node.js 24.19.0 LTS, React 19.2.8, TypeScript 6.0.3, Vite 8.2.1, CSS Modules + design tokens |
 | Extraction | Apache PDFBox 3.0.8, jsoup 1.23.1, Apache HttpClient 5, Playwright for Java 1.62.0 |
-| AI | Provider-neutral boundary; deterministic in-process fake is the default. No provider chosen yet. |
+| AI | Provider-neutral boundary; deterministic in-process fake is the default. No provider chosen yet — the acceptance bar is in [docs/provider-evaluation.md](docs/provider-evaluation.md). |
 | Testing | JUnit 5, ArchUnit, Vitest, Testing Library, axe-core |
 
 Every version is pinned and justified in [docs/versions.md](docs/versions.md), including the one
@@ -183,6 +183,17 @@ and are far slower:
 cd backend && ./gradlew browserTest
 ```
 
+The provider acceptance suite is excluded for the same reason plus one more: pointed at a real
+provider it sends document content off host and costs money. Against the default in-process fake it
+costs nothing and is worth running.
+
+```bash
+cd backend && ./gradlew providerEval
+```
+
+What it measures and what a provider has to demonstrate before being wired in is in
+[docs/provider-evaluation.md](docs/provider-evaluation.md).
+
 ### Environment variables
 
 None are required today. The default analysis provider is an in-process fake, so the application
@@ -253,7 +264,7 @@ is exercised with user-event.
 | 7 | Upload, job input and extraction-review UI | **Done** |
 | 8 | Results UI: score guide, accessible decimal stars, evidence, guidance | **Done** |
 | 9 | End-to-end hardening, calibration fixtures, documentation | **Done** |
-| 10 | Real AI provider evaluation, then a single adapter | Planned |
+| 10 | Provider evaluation harness and acceptance criteria | **Done** |
 | 11 | Docker packaging | Planned |
 | 12 | GitHub Actions CI/CD | Planned |
 | 13 | AWS architecture and deployment | Planned |

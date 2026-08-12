@@ -87,6 +87,7 @@ separate packages and are not combined into one service.
 ```bash
 cd backend && ./gradlew build            # compile + test (browser tests excluded)
 cd backend && ./gradlew browserTest      # the @Tag("browser") tests, needs Chromium
+cd backend && ./gradlew providerEval     # the provider acceptance suite; costs money off the fake
 cd backend && ./gradlew bootRun          # run the API
 cd backend && ./gradlew resolveAndLockAll --write-locks   # after changing dependencies
 ```
