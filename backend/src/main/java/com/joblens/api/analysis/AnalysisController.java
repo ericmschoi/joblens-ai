@@ -1,8 +1,10 @@
 package com.joblens.api.analysis;
 
+import com.joblens.analysis.AnalysisResult;
 import com.joblens.analysis.AnalysisService;
 import com.joblens.jobposting.ConfirmedJobPosting;
 import com.joblens.resume.ConfirmedResume;
+import com.joblens.scoring.FitScoreCalculator;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import org.springframework.http.MediaType;
@@ -23,14 +25,19 @@ import org.springframework.web.bind.annotation.RestController;
 class AnalysisController {
 
     private final AnalysisService analysisService;
+    private final FitScoreCalculator scoreCalculator;
 
-    AnalysisController(AnalysisService analysisService) {
+    AnalysisController(AnalysisService analysisService, FitScoreCalculator scoreCalculator) {
         this.analysisService = analysisService;
+        this.scoreCalculator = scoreCalculator;
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     AnalysisResponse analyse(@Valid @RequestBody AnalysisRequest request) {
-        return AnalysisResponse.from(analysisService.analyse(toResume(request.resume()), toJob(request.job())));
+        AnalysisResult result = analysisService.analyse(toResume(request.resume()), toJob(request.job()));
+        return AnalysisResponse.from(result, scoreCalculator.calculate(result.draft(),
+                result.candidateProfile(), result.resumeWarnings(), result.resumeCharacters(),
+                result.groundingFailureRatio()));
     }
 
     /**

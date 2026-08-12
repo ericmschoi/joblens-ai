@@ -2,11 +2,10 @@
 
 Compare a resume with a job posting and get an evidence-based, explainable fit analysis.
 
-> **Status: Phase 5 of 13.** The repository builds, tests and runs locally. A PDF resume and a job
-> description — pasted, or read from a public URL — can be extracted, reviewed, corrected and
-> confirmed, and the confirmed pair can be analysed end to end with no API key. Scoring and the UI
-> are not implemented yet. Nothing in this README describes behaviour that does not exist; unbuilt
-> work is marked as planned.
+> **Status: Phase 6 of 13.** The whole analysis works locally with no API key: upload a PDF resume,
+> add a job description by URL or paste, review and confirm both, and get a scored, explained fit
+> analysis. The web UI is next. Nothing in this README describes behaviour that does not exist;
+> unbuilt work is marked as planned.
 
 ## What it does
 
@@ -77,10 +76,15 @@ Six weighted categories, each scored `0.0`–`5.0` to one decimal place.
 | Required Qualification Coverage | 15% |
 | Domain & Operating Environment | 10% |
 
-The total is computed from the six displayed category values, so the number on screen can always be
-recomputed by hand. A genuine gap in a core required qualification caps the total (3.4 for one,
-2.4 for two, 1.9 for three or more), and every applied cap is explained with the requirement that
-triggered it. An `UNKNOWN` never counts as a gap and never triggers a cap.
+The total is the weighted sum of the six displayed category values, so the number on screen can
+always be recomputed by hand. A genuine gap in a core required qualification caps the total (3.4 for
+one, 2.4 for two, 1.9 for three or more), and every applied cap is explained with the requirement
+that triggered it. An `UNKNOWN` never counts as a gap and never triggers a cap.
+
+Two silences are treated the same way. A requirement the resume does not answer leaves the
+denominator rather than scoring zero, and a category the *posting* never mentioned is marked unrated
+and given no weight, with the remaining categories renormalised. Each result carries both its
+published weight and the weight actually applied, so the arithmetic stays checkable.
 
 The model does semantic work only — decomposing requirements, classifying importance, mapping
 evidence, judging match status. It never produces a score. All arithmetic, rounding and cap
@@ -227,7 +231,7 @@ is exercised with user-event.
 | 4a | Safe URL fetching, JSON-LD and generic HTML extraction | **Done** |
 | 4b | Applicant-tracking-system extractors and a controlled browser fallback | **Done** |
 | 5 | Versioned analysis schema, provider boundary, prompt assets, output validation | **Done** |
-| 6 | Evidence mapping and the deterministic score calculator | Planned |
+| 6 | Evidence mapping and the deterministic score calculator | **Done** |
 | 7 | Upload, job input and extraction-review UI | Planned |
 | 8 | Results UI: score guide, accessible decimal stars, evidence, guidance | Planned |
 | 9 | End-to-end hardening, calibration fixtures, documentation | Planned |

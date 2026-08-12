@@ -1,6 +1,9 @@
 package com.joblens.analysis;
 
 import com.joblens.analysis.model.AnalysisDraft;
+import com.joblens.document.ExtractionWarning;
+import com.joblens.resume.model.CandidateProfile;
+import java.util.List;
 
 /**
  * A validated, grounded analysis draft plus how it was produced.
@@ -13,6 +16,9 @@ import com.joblens.analysis.model.AnalysisDraft;
  */
 public record AnalysisResult(
         AnalysisDraft draft,
+        CandidateProfile candidateProfile,
+        List<ExtractionWarning> resumeWarnings,
+        int resumeCharacters,
         String providerId,
         String promptVersion,
         int groundedEvidenceCount,

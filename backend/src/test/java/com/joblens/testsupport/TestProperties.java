@@ -1,6 +1,7 @@
 package com.joblens.testsupport;
 
 import com.joblens.config.JoblensProperties;
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.List;
 
@@ -38,6 +39,11 @@ public final class TestProperties {
         return new JoblensProperties.JobFetch.Browser(false, Duration.ofSeconds(15), 1);
     }
 
+    public static JoblensProperties.Scoring defaultScoring() {
+        return new JoblensProperties.Scoring(new BigDecimal("3.4"), new BigDecimal("2.4"),
+                new BigDecimal("1.9"), new BigDecimal("1.5"));
+    }
+
     public static JoblensProperties.JobFetch defaultJobFetch() {
         return new JoblensProperties.JobFetch(
                 Duration.ofSeconds(2),
@@ -67,6 +73,7 @@ public final class TestProperties {
                 jobPosting,
                 jobFetch,
                 new JoblensProperties.Cors(List.of("http://localhost:5173")),
-                new JoblensProperties.Analysis("fake"));
+                new JoblensProperties.Analysis("fake"),
+                defaultScoring());
     }
 }

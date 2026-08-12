@@ -64,6 +64,13 @@ joblens:
       enabled: false
       timeout: 15s
       max-concurrent-renders: 1
+  scoring:
+    # A missing core must-have cannot be averaged away. Applied after the weighted total, and every
+    # ceiling that fires is explained to the user with the requirement that caused it.
+    one-core-gap-ceiling: 3.4
+    two-core-gaps-ceiling: 2.4
+    three-or-more-core-gaps-ceiling: 1.9
+    not-eligible-ceiling: 1.5
   cors:
     # The local Vite dev server. Production origins are configured per environment.
     allowed-origins:
