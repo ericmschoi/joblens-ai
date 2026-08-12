@@ -103,7 +103,7 @@ class JobDescriptionControllerTest {
                             .value(org.hamcrest.Matchers.containsString("full-stack software engineer")))
                     .andExpect(jsonPath("$.jobPosting.requiredQualifications.length()").value(0))
                     .andExpect(jsonPath("$.extractionWarnings[*].code").value(org.hamcrest.Matchers.hasItems(
-                            "NO_SECTIONS_DETECTED", "NO_QUALIFICATION_SECTIONS_DETECTED")));
+                            "NO_POSTING_SECTIONS_DETECTED", "NO_QUALIFICATION_SECTIONS_DETECTED")));
         }
 
         @Test

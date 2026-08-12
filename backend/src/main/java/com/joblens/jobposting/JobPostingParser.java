@@ -36,22 +36,53 @@ public class JobPostingParser {
                     "day to day", "in this role", "role responsibilities"),
             Kind.REQUIRED, List.of("required qualifications", "minimum qualifications", "basic qualifications",
                     "requirements", "required skills", "required experience", "must have", "must-haves",
-                    "what you'll need", "what you need", "what we're looking for"),
+                    "what you'll need", "what you need", "what we're looking for",
+                    // Workday postings commonly write the qualifier after the noun.
+                    "qualifications required", "skills required", "experience required"),
             Kind.PREFERRED, List.of("preferred qualifications", "preferred", "nice to have", "nice-to-haves",
                     "nice to haves", "bonus points", "bonus", "desired qualifications", "assets",
-                    "it's a plus", "pluses", "good to have"),
+                    "it's a plus", "pluses", "good to have", "qualifications preferred",
+                    "nice to haves", "preferred skills", "preferred experience"),
             Kind.AMBIGUOUS_QUALIFICATIONS, List.of("qualifications", "skills", "skills and experience",
                     "experience", "what you bring", "who you are", "about you", "you have",
                     "qualifications and fit", "requirements and qualifications", "technical skills",
                     "what you bring to the table", "your experience", "your background",
                     "who you'll be", "who you will be", "experience and skills"),
             Kind.ABOUT, List.of("about us", "about the company", "about the role", "about the team",
-                    "who we are", "overview", "the opportunity", "company overview"),
+                    "who we are", "overview", "the opportunity", "company overview", "why join",
+                    "why join us", "what we offer", "what you'll work on", "what you will work on",
+                    "benefits", "perks", "perks and benefits", "how to apply"),
             Kind.COMPENSATION, List.of("compensation", "salary", "pay range", "salary range",
                     "compensation and benefits"));
 
     private static final int MAX_HEADING_LENGTH = 60;
     private static final int MAX_HEADER_BLOCK_LINES = 8;
+    /** A title, company or location longer than this is a sentence that has been misread as one. */
+    private static final int MAX_FIELD_LENGTH = 120;
+
+    /** {@code Label: value}, with a label short enough to be a label. */
+    private static final Pattern LABELLED_FIELD =
+            Pattern.compile("^([A-Za-z][A-Za-z /]{1,24}?)\\s*:\\s*(.*)$");
+
+    /** Labels that introduce the posting rather than name a field, so they are never the title. */
+    private static final List<String> BARE_LABELS = List.of(
+            "job description", "description", "job title", "title", "position", "role", "overview",
+            "job details", "about the job", "about this role", "summary", "job summary", "job post");
+
+    /** Single words that are only ever a heading in a job posting. */
+    private static final List<String> SAFE_SINGLE_WORD_HEADINGS = List.of(
+            "responsibilities", "requirements", "qualifications", "benefits", "perks");
+
+    /** Phrases that read as a heading on their own line but as prose in the middle of one. */
+    private static final List<String> AMBIGUOUS_INLINE_PHRASES = List.of(
+            "the role", "in this role", "day to day", "must have", "you have", "about you");
+
+    /** Words that make a value a role rather than an employer. */
+    private static final List<String> ROLE_WORDS = List.of(
+            "engineer", "developer", "designer", "manager", "analyst", "architect", "scientist",
+            "consultant", "specialist", "administrator", "technician", "intern", "junior", "senior",
+            "intermediate", "staff", "principal", "lead", "full stack", "full-stack", "frontend",
+            "front-end", "backend", "back-end", "devops", "programmer");
 
     private static final Pattern BULLET = Pattern.compile("^-\\s+");
     private static final Pattern STRONG_SEPARATOR =
@@ -75,8 +106,29 @@ public class JobPostingParser {
             "nice to have", "is a plus", "are a plus", "bonus points", "would be an asset",
             "is an asset", "preferred but not required");
 
+    /**
+     * Heading phrases that are safe to look for inside a run of text.
+     *
+     * <p>Not the whole vocabulary. "Experience", "Skills" and "Overview" are headings at the start
+     * of a line and ordinary words everywhere else — "Experience with Docker" is a requirement, not
+     * a section — so a single word only qualifies if it has no other common use in a posting. The
+     * words left out are still recognised as headings when they genuinely start a line.
+     */
+    static List<String> inlineHeadingPhrases() {
+        return HEADINGS.values().stream()
+                .flatMap(List::stream)
+                .filter(phrase -> phrase.contains(" ") || SAFE_SINGLE_WORD_HEADINGS.contains(phrase))
+                .filter(phrase -> !AMBIGUOUS_INLINE_PHRASES.contains(phrase))
+                .toList();
+    }
+
     public ParsedJobPosting parse(String normalizedText) {
-        List<String> lines = normalizedText.lines().toList();
+        // A posting that arrived as one continuous run has to get its line breaks back before a
+        // line-based parser can read it. Nothing is added or removed; see ContinuousTextRecovery.
+        ContinuousTextRecovery.Result recovery =
+                ContinuousTextRecovery.apply(normalizedText, inlineHeadingPhrases());
+
+        List<String> lines = recovery.text().lines().toList();
         List<Block> blocks = splitIntoBlocks(lines);
 
         List<String> headerLines = blocks.stream()
@@ -130,8 +182,8 @@ public class JobPostingParser {
                 header.title(), header.company(), header.location(), header.employmentType(), compensation,
                 responsibilities, required, preferred, other, null);
 
-        return new ParsedJobPosting(posting, warningsFor(
-                blocks, posting, normalizedText, sawAmbiguousQualifications, sawExplicitPreferred));
+        return new ParsedJobPosting(posting, warningsFor(blocks, posting, normalizedText,
+                sawAmbiguousQualifications, sawExplicitPreferred, recovery.recovered()));
     }
 
     // --- sectioning ------------------------------------------------------------------------------
@@ -175,6 +227,12 @@ public class JobPostingParser {
             if (entry.getValue().contains(candidate)) {
                 return Optional.of(entry.getKey());
             }
+        }
+
+        // "About Qualifacts" names a section the same way "About us" does, and no list can hold
+        // every employer's name.
+        if (candidate.matches("about\\s+\\S+(\\s+\\S+)?")) {
+            return Optional.of(Kind.ABOUT);
         }
 
         // An unlisted short label immediately above a bullet list is still a heading. Recognising it
@@ -234,6 +292,15 @@ public class JobPostingParser {
     private record Header(String title, String company, String location, String employmentType,
                           String compensation) {}
 
+    /**
+     * Reads the block above the first recognised heading.
+     *
+     * <p>Position is the weakest signal a posting offers and it is used last. A label the posting
+     * wrote itself — "Company: Qualifacts" — is what it says it is, so labels win outright. Only
+     * when a posting labels nothing does this fall back to reading the first lines by position, and
+     * even then it refuses to fill a field it cannot support: a wrong company is worse than a blank
+     * one, because the review step shows a blank as something to fix and a wrong value as a fact.
+     */
     private static Header parseHeader(List<String> headerLines) {
         List<String> lines = headerLines.size() > MAX_HEADER_BLOCK_LINES
                 ? headerLines.subList(0, MAX_HEADER_BLOCK_LINES)
@@ -242,26 +309,23 @@ public class JobPostingParser {
             return new Header(null, null, null, null, null);
         }
 
-        String title = lines.getFirst().strip();
-        String company = null;
-        String location = null;
+        Map<String, String> labelled = labelledFields(lines);
+        String title = firstOf(labelled, "job title", "title", "position", "role");
+        String company = firstOf(labelled, "company", "employer", "organisation", "organization");
+        String location = firstOf(labelled, "location");
+        String employmentType = firstOf(labelled, "employment type", "job type");
 
-        if (lines.size() > 1) {
-            List<String> parts = List.of(STRONG_SEPARATOR.split(lines.get(1).strip())).stream()
-                    .map(String::strip)
-                    .filter(part -> !part.isEmpty())
-                    .toList();
-            if (!parts.isEmpty()) {
-                if (looksLikeALocation(parts.getFirst())) {
-                    location = parts.getFirst();
-                } else {
-                    company = parts.getFirst();
-                    location = parts.size() > 1 ? parts.get(1) : null;
-                }
-            }
+        // "Job Description: Senior Engineer" names the role; "Job Description:" alone introduces it.
+        if (title == null) {
+            title = firstOf(labelled, "job description", "description");
         }
-        if (location == null && lines.size() > 2 && looksLikeALocation(lines.get(2).strip())) {
-            location = lines.get(2).strip();
+        if (title == null) {
+            title = titleByPosition(lines);
+        }
+        if (company == null && location == null) {
+            Header positional = companyAndLocationByPosition(lines);
+            company = positional.company();
+            location = positional.location();
         }
 
         String block = String.join("\n", lines);
@@ -272,8 +336,117 @@ public class JobPostingParser {
                 title,
                 company,
                 location,
-                employment.find() ? employment.group().strip() : null,
+                employmentType != null ? employmentType
+                        : employment.find() ? employment.group().strip() : null,
                 compensation.find() ? compensation.group().strip() : null);
+    }
+
+    /** Every {@code Label: value} in the header block, lower-cased label to value. */
+    private static Map<String, String> labelledFields(List<String> lines) {
+        Map<String, String> fields = new LinkedHashMap<>();
+        for (String line : lines) {
+            Matcher matcher = LABELLED_FIELD.matcher(line.strip());
+            if (!matcher.matches()) {
+                continue;
+            }
+            String label = matcher.group(1).strip().toLowerCase(Locale.ROOT);
+            String value = matcher.group(2).strip();
+            if (!value.isEmpty() && value.length() <= MAX_FIELD_LENGTH) {
+                fields.putIfAbsent(label, value);
+            }
+        }
+        return fields;
+    }
+
+    private static String firstOf(Map<String, String> fields, String... labels) {
+        for (String label : labels) {
+            String value = fields.get(label);
+            if (value != null) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The first line that is a plausible job title. A bare label is skipped rather than reported as
+     * the role, and a line long enough to be a paragraph is not a title at all.
+     */
+    private static String titleByPosition(List<String> lines) {
+        for (String line : lines) {
+            String candidate = line.strip().replaceAll("[:\\s]+$", "");
+            if (candidate.isEmpty() || isBareLabel(candidate)) {
+                continue;
+            }
+            // A run that lost its line breaks can leave a whole paragraph here. Take the first
+            // sentence if that is title-sized, and otherwise leave the field for the user to fill.
+            if (candidate.length() > MAX_FIELD_LENGTH) {
+                String firstSentence = candidate.split("(?<=[.!?])\\s+", 2)[0].strip();
+                return firstSentence.length() <= MAX_FIELD_LENGTH ? firstSentence : null;
+            }
+            return candidate;
+        }
+        return null;
+    }
+
+    private static boolean isBareLabel(String candidate) {
+        String lower = candidate.toLowerCase(Locale.ROOT);
+        return BARE_LABELS.contains(lower);
+    }
+
+    /**
+     * The "Company — City, Province" line some postings put under the title.
+     *
+     * <p>Accepted only when one side actually looks like a location. Splitting on a dash without
+     * that check is how "Junior–Intermediate Software Engineer (Full Stack)" became a company called
+     * "Junior" in a place called "Intermediate Software Engineer".
+     */
+    private static Header companyAndLocationByPosition(List<String> lines) {
+        if (lines.size() < 2) {
+            return new Header(null, null, null, null, null);
+        }
+        String line = lines.get(1).strip();
+        if (line.length() > MAX_FIELD_LENGTH) {
+            return new Header(null, null, null, null, null);
+        }
+
+        List<String> parts = List.of(STRONG_SEPARATOR.split(line)).stream()
+                .map(String::strip)
+                .filter(part -> !part.isEmpty())
+                .toList();
+
+        if (parts.isEmpty()) {
+            return new Header(null, null, null, null, null);
+        }
+        if (parts.size() == 1) {
+            String only = parts.getFirst();
+            if (looksLikeALocation(only)) {
+                return new Header(null, null, only, null, null);
+            }
+            return new Header(null, looksLikeARole(only) ? null : only, null, null, null);
+        }
+
+        String first = parts.getFirst();
+        String second = parts.get(1);
+
+        if (looksLikeALocation(first)) {
+            return new Header(null, null, first, null, null);
+        }
+        if (looksLikeALocation(second)) {
+            // Only now is the first part a company: something else on the line is a place.
+            return new Header(null, looksLikeARole(first) ? null : first, second, null, null);
+        }
+        // Neither part is a place. This is a title that happened to contain a dash, not a header.
+        return new Header(null, null, null, null, null);
+    }
+
+    /**
+     * Whether a value reads as a job title rather than an employer. A dash inside a role — "Junior –
+     * Intermediate", "Engineer II - Platform" — is the common way this parser used to be fooled.
+     */
+    private static boolean looksLikeARole(String value) {
+        String lower = value.toLowerCase(Locale.ROOT);
+        return ROLE_WORDS.stream().anyMatch(lower::contains);
     }
 
     private static boolean looksLikeALocation(String value) {
@@ -297,13 +470,18 @@ public class JobPostingParser {
     // --- warnings --------------------------------------------------------------------------------
 
     private static List<ExtractionWarning> warningsFor(List<Block> blocks, JobPosting posting,
-            String text, boolean sawAmbiguousQualifications, boolean sawExplicitPreferred) {
+            String text, boolean sawAmbiguousQualifications, boolean sawExplicitPreferred,
+            boolean structureRecovered) {
 
         List<ExtractionWarning> warnings = new ArrayList<>();
 
+        // Said first, because it explains the state of everything below it.
+        if (structureRecovered) {
+            warnings.add(ExtractionWarning.of(WarningCode.STRUCTURE_RECOVERED_FROM_CONTINUOUS_TEXT));
+        }
         boolean anyHeadingRecognised = blocks.stream().anyMatch(block -> block.kind() != Kind.HEADER);
         if (!anyHeadingRecognised) {
-            warnings.add(ExtractionWarning.of(WarningCode.NO_SECTIONS_DETECTED));
+            warnings.add(ExtractionWarning.of(WarningCode.NO_POSTING_SECTIONS_DETECTED));
         }
         if (posting.requiredQualifications().isEmpty() && posting.preferredQualifications().isEmpty()) {
             warnings.add(ExtractionWarning.of(WarningCode.NO_QUALIFICATION_SECTIONS_DETECTED));

@@ -87,4 +87,47 @@ public final class JobPostingFixtures {
             + "◦ Experience with “event-driven” systems\n"
             + "• Comfortable owning a feature\n"
             + "  end to end in production\n";
+
+    /**
+     * A posting whose source flattened it into one run of text, exactly as Workday's schema.org
+     * {@code description} arrives: no paragraph, no list, no newline anywhere.
+     */
+    public static final String FLATTENED_BY_THE_SOURCE =
+            "Job Description: Junior\u2013Intermediate Software Engineer (Full Stack) "
+                    + "Team: iQ AI Company: Qualifacts Location: Remote / Hybrid (Canada) "
+                    + "About Qualifacts Qualifacts is a leading provider of electronic health record "
+                    + "software for behavioral health organisations, and the iQ AI team builds the "
+                    + "intelligent tooling on top of it for clinicians and administrators everywhere. "
+                    + "Responsibilities Design, build, and maintain full-stack features for "
+                    + "AI-powered healthcare applications Develop modern frontend interfaces using "
+                    + "frameworks such as React or Next.js Build and maintain backend services and "
+                    + "APIs using Node.js or Python Collaborate with product managers and designers "
+                    + "to ship new features Troubleshoot and resolve production issues "
+                    + "Qualifications Required 0-2 years of professional software engineering "
+                    + "experience Experience building full-stack web applications Proficiency with "
+                    + "JavaScript/TypeScript Experience with modern frontend frameworks (React "
+                    + "preferred) Familiarity with relational databases (PostgreSQL, MySQL, etc.) "
+                    + "Nice to Have Experience with AI/ML integrations or LLM-based applications "
+                    + "Familiarity with cloud platforms (AWS preferred) Exposure to healthcare, EHR "
+                    + "systems, or regulated environments";
+
+    /** The same posting with its line breaks intact, and its fields labelled the way it labels them. */
+    public static final String LABELLED_HEADER = """
+            Job Description:
+            Junior\u2013Intermediate Software Engineer (Full Stack)
+            Team: iQ AI
+            Company: Qualifacts
+            Location: Remote / Hybrid (Canada)
+
+            Responsibilities
+            \u2022 Design, build, and maintain full-stack features for healthcare applications
+            \u2022 Develop modern frontend interfaces using React or Next.js
+
+            Required Qualifications
+            \u2022 2+ years of professional full stack development experience
+            \u2022 Strong JavaScript or TypeScript
+
+            Preferred Qualifications
+            \u2022 Experience with AI or machine learning products
+            """;
 }
