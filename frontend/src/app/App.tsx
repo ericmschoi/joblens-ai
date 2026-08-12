@@ -1,23 +1,58 @@
+import { ProblemBanner } from '../components/ProblemBanner';
+import { StepIndicator } from '../components/StepIndicator';
+import { JobDescriptionStep } from '../features/jobinput/JobDescriptionStep';
+import { JobReviewStep } from '../features/review/JobReviewStep';
+import { ResumeReviewStep } from '../features/review/ResumeReviewStep';
+import { ResumeUploadStep } from '../features/upload/ResumeUploadStep';
+import { WizardProvider, useWizard } from '../session/WizardContext';
+import type { StepId } from '../session/WizardState';
 import styles from './App.module.css';
 
-const STEPS = [
-  {
-    title: 'Upload your resume',
-    description:
-      'Add a text-based PDF. JobLens reads only what the file already contains, and the file is never stored.',
-  },
-  {
-    title: 'Add the job posting',
-    description: 'Provide a job URL, or paste the job description if the page cannot be read.',
-  },
-  {
-    title: 'Review, then analyse',
-    description:
-      'Check and correct the extracted text first. The version you confirm is what gets analysed.',
-  },
-] as const;
+function completedSteps(state: ReturnType<typeof useWizard>['state']): StepId[] {
+  const done: StepId[] = [];
+  if (state.resumeExtraction) {
+    done.push('resume');
+  }
+  if (state.confirmedResume) {
+    done.push('reviewResume');
+  }
+  if (state.jobExtraction) {
+    done.push('job');
+  }
+  if (state.confirmedJob) {
+    done.push('reviewJob');
+  }
+  return done;
+}
 
-export default function App() {
+function CurrentStep() {
+  const { state } = useWizard();
+
+  switch (state.step) {
+    case 'resume':
+      return <ResumeUploadStep />;
+    case 'reviewResume':
+      return <ResumeReviewStep />;
+    case 'job':
+      return <JobDescriptionStep />;
+    case 'reviewJob':
+      return <JobReviewStep />;
+    case 'results':
+      return (
+        <section aria-labelledby="results-heading">
+          <h2 id="results-heading">Both documents are confirmed</h2>
+          <p>
+            The resume and the job description have been reviewed and confirmed. The analysis screen
+            arrives in the next step of the build.
+          </p>
+        </section>
+      );
+  }
+}
+
+function Wizard() {
+  const { state, dispatch } = useWizard();
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -29,24 +64,30 @@ export default function App() {
       </header>
 
       <main className={styles.main}>
-        <h2 className={styles.sectionTitle}>How it works</h2>
-        <ol className={styles.steps}>
-          {STEPS.map((step, index) => (
-            <li key={step.title} className={styles.step}>
-              <span className={styles.stepNumber} aria-hidden="true">
-                {index + 1}
-              </span>
-              <h3 className={styles.stepTitle}>{step.title}</h3>
-              <p className={styles.stepDescription}>{step.description}</p>
-            </li>
-          ))}
-        </ol>
+        <StepIndicator current={state.step} completed={completedSteps(state)} />
+
+        {state.problem && (
+          <ProblemBanner
+            problem={state.problem}
+            onDismiss={() => dispatch({ type: 'dismissedProblem' })}
+          />
+        )}
+
+        <CurrentStep />
 
         <p className={styles.note}>
-          JobLens evaluates experience that is explicitly documented in the resume. Experience that
-          is not written down cannot be assessed.
+          JobLens evaluates experience that is explicitly documented in the resume. Nothing you
+          upload is stored: closing this tab ends the session and the documents go with it.
         </p>
       </main>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <WizardProvider>
+      <Wizard />
+    </WizardProvider>
   );
 }
