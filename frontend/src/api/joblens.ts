@@ -1,5 +1,6 @@
 import { postFormData, postJson } from './client';
 import type {
+  AnalysisResponse,
   CandidateProfile,
   ConfirmedJobPosting,
   ConfirmedResume,
@@ -46,4 +47,27 @@ export function confirmJobDescription(
 ): Promise<ConfirmedJobPosting> {
   return postJson<ConfirmedJobPosting>('/job-descriptions/confirm', { ...input, confirmed: true },
     signal ? { signal } : {});
+}
+
+export function runAnalysis(
+  resume: ConfirmedResume,
+  job: ConfirmedJobPosting,
+  signal?: AbortSignal,
+): Promise<AnalysisResponse> {
+  return postJson<AnalysisResponse>('/analyses', {
+    resume: {
+      reviewStatus: resume.reviewStatus,
+      contentFingerprint: resume.contentFingerprint,
+      rawText: resume.rawText,
+      candidateProfile: resume.candidateProfile,
+      extractionWarnings: resume.extractionWarnings,
+    },
+    job: {
+      reviewStatus: job.reviewStatus,
+      contentFingerprint: job.contentFingerprint,
+      rawText: job.rawText,
+      jobPosting: job.jobPosting,
+      extractionWarnings: job.extractionWarnings,
+    },
+  }, signal ? { signal } : {});
 }
