@@ -2,10 +2,10 @@
 
 Compare a resume with a job posting and get an evidence-based, explainable fit analysis.
 
-> **Status: Phase 6 of 13.** The whole analysis works locally with no API key: upload a PDF resume,
-> add a job description by URL or paste, review and confirm both, and get a scored, explained fit
-> analysis. The web UI is next. Nothing in this README describes behaviour that does not exist;
-> unbuilt work is marked as planned.
+> **Status: Phase 7 of 13.** The whole analysis works locally with no API key, and the web UI now
+> carries the input and review flow: upload a PDF resume, add a job description by URL or paste,
+> and review and correct both before confirming. The results screen is next. Nothing in this README
+> describes behaviour that does not exist; unbuilt work is marked as planned.
 
 ## What it does
 
@@ -232,7 +232,7 @@ is exercised with user-event.
 | 4b | Applicant-tracking-system extractors and a controlled browser fallback | **Done** |
 | 5 | Versioned analysis schema, provider boundary, prompt assets, output validation | **Done** |
 | 6 | Evidence mapping and the deterministic score calculator | **Done** |
-| 7 | Upload, job input and extraction-review UI | Planned |
+| 7 | Upload, job input and extraction-review UI | **Done** |
 | 8 | Results UI: score guide, accessible decimal stars, evidence, guidance | Planned |
 | 9 | End-to-end hardening, calibration fixtures, documentation | Planned |
 | 10 | Real AI provider evaluation, then a single adapter | Planned |
