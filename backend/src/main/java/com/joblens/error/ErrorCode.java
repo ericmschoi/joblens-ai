@@ -35,6 +35,9 @@ public enum ErrorCode {
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED,
             "Not supported at this address",
             "Reload the page and try again."),
+    REQUEST_TOO_LARGE(HttpStatus.CONTENT_TOO_LARGE,
+            "This request is too large",
+            "Shorten the text in the review step and submit again."),
 
     // --- Resume upload and extraction -------------------------------------------------------
     FILE_MISSING(HttpStatus.BAD_REQUEST,

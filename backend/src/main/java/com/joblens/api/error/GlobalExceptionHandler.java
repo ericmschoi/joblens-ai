@@ -1,5 +1,6 @@
 package com.joblens.api.error;
 
+import com.joblens.api.RequestBodyLimitFilter;
 import com.joblens.error.ApiException;
 import com.joblens.error.ErrorCode;
 import java.util.List;
@@ -90,10 +91,29 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
             HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         String traceId = newTraceId();
-        LOG.warn("code={} traceId={}", ErrorCode.REQUEST_NOT_READABLE, traceId);
-        ProblemDetail body = problems.create(ErrorCode.REQUEST_NOT_READABLE,
-                "The request body could not be read.", List.of(), traceId);
-        return ResponseEntity.status(ErrorCode.REQUEST_NOT_READABLE.status()).body(body);
+
+        // A body that ran past the cap fails while the converter is reading it, so the size limit
+        // surfaces here rather than as its own exception. It is a different answer from "malformed".
+        ErrorCode code = hitTheBodyLimit(ex) ? ErrorCode.REQUEST_TOO_LARGE : ErrorCode.REQUEST_NOT_READABLE;
+        LOG.warn("code={} traceId={}", code, traceId);
+        ProblemDetail body = problems.create(code,
+                code == ErrorCode.REQUEST_TOO_LARGE
+                        ? "The request body is larger than this API accepts."
+                        : "The request body could not be read.",
+                List.of(), traceId);
+        return ResponseEntity.status(code.status()).body(body);
+    }
+
+    private static boolean hitTheBodyLimit(Throwable ex) {
+        for (Throwable cause = ex; cause != null; cause = cause.getCause()) {
+            if (cause instanceof RequestBodyLimitFilter.BodyTooLargeException) {
+                return true;
+            }
+            if (cause.getCause() == cause) {
+                return false;
+            }
+        }
+        return false;
     }
 
     /**

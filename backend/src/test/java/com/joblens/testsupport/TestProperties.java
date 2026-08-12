@@ -12,6 +12,7 @@ public final class TestProperties {
     public static final int MAX_PAGE_COUNT = 15;
     public static final int MIN_USABLE_CHARACTERS = 400;
     public static final int MAX_EXTRACTED_CHARACTERS = 500_000;
+    public static final long MAX_JSON_REQUEST_BYTES = 4L * 1024 * 1024;
 
     private TestProperties() {}
 
@@ -33,6 +34,12 @@ public final class TestProperties {
 
     public static JoblensProperties withJobFetch(JoblensProperties.JobFetch jobFetch) {
         return build(defaultResume(), defaultJobPosting(), jobFetch);
+    }
+
+    public static JoblensProperties withApi(JoblensProperties.Api api) {
+        return new JoblensProperties(api, defaultResume(), defaultJobPosting(), defaultJobFetch(),
+                new JoblensProperties.Cors(List.of("http://localhost:5173")),
+                new JoblensProperties.Analysis("fake"), defaultScoring());
     }
 
     public static JoblensProperties.JobFetch.Browser browserDisabled() {
@@ -69,6 +76,7 @@ public final class TestProperties {
     private static JoblensProperties build(JoblensProperties.Resume resume,
             JoblensProperties.JobPosting jobPosting, JoblensProperties.JobFetch jobFetch) {
         return new JoblensProperties(
+                new JoblensProperties.Api(MAX_JSON_REQUEST_BYTES),
                 resume,
                 jobPosting,
                 jobFetch,
