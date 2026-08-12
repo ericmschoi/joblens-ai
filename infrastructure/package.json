@@ -1,0 +1,25 @@
+{
+  "name": "joblens-infrastructure",
+  "version": "0.0.1",
+  "private": true,
+  "description": "AWS infrastructure for JobLens AI, defined with the AWS CDK.",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "synth": "cdk synth",
+    "diff": "cdk diff",
+    "deploy": "cdk deploy"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "aws-cdk": "2.1136.0",
+    "aws-cdk-lib": "2.264.0",
+    "constructs": "10.8.1",
+    "tsx": "4.23.12",
+    "typescript": "6.0.3",
+    "vitest": "4.1.10"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
+  }
+}

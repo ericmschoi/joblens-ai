@@ -2,7 +2,7 @@
 
 Compare a resume with a job posting and get an evidence-based, explainable fit analysis.
 
-> **Status: Phase 12 of 13.** The product works end to end locally with no API key: upload a PDF
+> **Status: Phase 13 of 13.** The product works end to end locally with no API key: upload a PDF
 > resume, add a job description by URL or paste, review and correct both, and read a scored,
 > evidence-backed analysis. Packaging, CI and deployment are what remain. Nothing in this README
 > describes behaviour that does not exist; unbuilt work is marked as planned.
@@ -118,8 +118,11 @@ Every version is pinned and justified in [docs/versions.md](docs/versions.md), i
 deliberate deviation from "newest stable" (TypeScript 6.0.3 rather than 7.0.2, because
 typescript-eslint does not support TypeScript 7 yet).
 
-Choosing a runtime AI provider and choosing hosting infrastructure are independent decisions. Both
-are deferred until the relevant phase.
+Infrastructure is AWS CDK in TypeScript: CloudFront in front of a private S3 bucket for the SPA and
+an `AWS_IAM`-authenticated Lambda function URL for the API, so a deployed environment is same-origin
+and costs about three cents a month at rest. It is written, tested and synthesized, and **nothing has
+been deployed** — see [docs/aws.md](docs/aws.md) for what deploying would create and what it would
+cost.
 
 ## Getting started
 
@@ -277,7 +280,7 @@ is exercised with user-event.
 | 10 | Provider evaluation harness and acceptance criteria | **Done** |
 | 11 | Docker packaging | **Done** |
 | 12 | GitHub Actions CI | **Done** |
-| 13 | AWS architecture and deployment | Planned |
+| 13 | AWS architecture, synthesized and costed | **Done** — not deployed |
 
 ## Why I am building this
 
