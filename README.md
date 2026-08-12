@@ -2,9 +2,9 @@
 
 Compare a resume with a job posting and get an evidence-based, explainable fit analysis.
 
-> **Status: Phase 7 of 13.** The whole analysis works locally with no API key, and the web UI now
-> carries the input and review flow: upload a PDF resume, add a job description by URL or paste,
-> and review and correct both before confirming. The results screen is next. Nothing in this README
+> **Status: Phase 9 of 13.** The product works end to end locally with no API key: upload a PDF
+> resume, add a job description by URL or paste, review and correct both, and read a scored,
+> evidence-backed analysis. Packaging, CI and deployment are what remain. Nothing in this README
 > describes behaviour that does not exist; unbuilt work is marked as planned.
 
 ## What it does
@@ -22,7 +22,7 @@ a skill listed in a skills section from a skill demonstrated in real work, a dir
 transferable experience, a confirmed **gap** from an **unknown**, and how well the candidate fits
 the role from how attractive the opportunity is.
 
-## Planned user flow
+## The user flow
 
 1. Upload a text-based PDF resume.
 2. Provide the job description as **either** a job URL **or** pasted text.
@@ -150,6 +150,15 @@ cd backend && ./gradlew bootRun
 cd frontend && npm ci && npm run dev
 ```
 
+### Try the API directly
+
+The endpoint contract, the error catalogue and the operational limits are in
+[docs/api.md](docs/api.md). A one-line example that needs nothing but a running backend:
+
+```bash
+curl -s -X POST http://localhost:8080/api/v1/job-descriptions/extract -H 'Content-Type: application/json' -d '{"text":"Senior Backend Engineer at Acme Corp. Responsibilities: build services in Java. Required Qualifications: 5+ years of backend development, strong Java and Spring Boot, experience designing REST APIs, hands-on experience with AWS. Preferred Qualifications: Kafka."}'
+```
+
 ### Verify a change
 
 ```bash
@@ -220,6 +229,15 @@ is exercised with user-event.
   harder. The crawler identifies itself honestly and is never disguised as a browser.
 - Model output is validated against a schema before use, and quoted resume evidence is checked
   against the submitted resume text so fabricated quotes cannot reach the results page.
+- Every response is `no-store`, `nosniff`, `DENY`-framed, `no-referrer`, and declares a
+  content-security policy that permits nothing. A response holding extracted resume text has no
+  business in a browser cache after the tab is closed.
+- Cross-origin access is limited to configured origins and is never credentialed; the API issues and
+  reads no cookies.
+- JSON bodies are capped before they are parsed, by declared length and again while being read, so
+  an oversized or length-less body cannot be buffered into memory first.
+- That document content stays out of the logs is checked end to end, across the whole request path
+  and its failure branches, not assumed from a code-review convention.
 
 ## Roadmap
 
@@ -233,8 +251,8 @@ is exercised with user-event.
 | 5 | Versioned analysis schema, provider boundary, prompt assets, output validation | **Done** |
 | 6 | Evidence mapping and the deterministic score calculator | **Done** |
 | 7 | Upload, job input and extraction-review UI | **Done** |
-| 8 | Results UI: score guide, accessible decimal stars, evidence, guidance | Planned |
-| 9 | End-to-end hardening, calibration fixtures, documentation | Planned |
+| 8 | Results UI: score guide, accessible decimal stars, evidence, guidance | **Done** |
+| 9 | End-to-end hardening, calibration fixtures, documentation | **Done** |
 | 10 | Real AI provider evaluation, then a single adapter | Planned |
 | 11 | Docker packaging | Planned |
 | 12 | GitHub Actions CI/CD | Planned |

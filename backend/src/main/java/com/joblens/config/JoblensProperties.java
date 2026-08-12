@@ -17,8 +17,14 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @ConfigurationProperties(prefix = "joblens")
 public record JoblensProperties(
-        @Valid Resume resume, @Valid JobPosting jobPosting, @Valid JobFetch jobFetch,
+        @Valid Api api, @Valid Resume resume, @Valid JobPosting jobPosting, @Valid JobFetch jobFetch,
         @Valid Cors cors, @Valid Analysis analysis, @Valid Scoring scoring) {
+
+    /**
+     * Bounds on the HTTP surface itself, as opposed to on any one document. A JSON body is fully
+     * buffered and parsed before a controller runs, so it needs a limit of its own.
+     */
+    public record Api(@Positive long maxJsonRequestBytes) {}
 
     public record Resume(
             @Positive long maxFileSizeBytes,

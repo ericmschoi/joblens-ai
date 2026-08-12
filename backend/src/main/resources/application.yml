@@ -36,6 +36,10 @@ logging:
     com.joblens: INFO
 
 joblens:
+  api:
+    # Comfortably above the largest legitimate payload (a confirmed resume of max-extracted-characters
+    # plus a confirmed posting), and far below anything that would strain the parser.
+    max-json-request-bytes: 4194304   # 4 MiB
   resume:
     max-file-size-bytes: 10485760   # 10 MiB
     max-page-count: 15
