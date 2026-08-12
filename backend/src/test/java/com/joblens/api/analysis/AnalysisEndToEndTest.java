@@ -115,16 +115,45 @@ class AnalysisEndToEndTest {
         assertThat(response.get("schemaVersion").asString()).isEqualTo("analysis/v1");
         assertThat(response.get("analysisMetadata").get("providerId").asString()).isEqualTo("fake");
         assertThat(response.get("analysisMetadata").get("promptVersion").asString()).isEqualTo("v1");
-        assertThat(response.get("draft").get("requirementAssessments")).isNotEmpty();
+        assertThat(response.get("analysis").get("requirementAssessments")).isNotEmpty();
+        assertThat(response.get("analysis").get("categoryResults")).hasSize(6);
     }
 
     @Test
-    void returnsNoScoreAnywhereInTheResponse() throws Exception {
-        String body = analyse(analysisRequest(confirmedResume(), confirmedJob()), 200);
+    void showsTheInterpretationGuideAndItsCaveatAlongsideTheScore() throws Exception {
+        JsonNode response = objectMapper.readTree(
+                analyse(analysisRequest(confirmedResume(), confirmedJob()), 200));
 
-        assertThat(body)
-                .as("scores are computed by the backend in the next phase, not returned by the model")
-                .doesNotContain("totalMatchScore", "\"score\"", "applicationTier", "recommendation");
+        assertThat(response.get("scoreInterpretationGuide")).hasSize(6);
+        assertThat(response.get("scoreCaveat").asString())
+                .contains("explicitly documented in the resume");
+    }
+
+    @Test
+    void theHeadlineCanBeRecomputedFromTheCategoriesOnScreen() throws Exception {
+        JsonNode analysis = objectMapper.readTree(
+                analyse(analysisRequest(confirmedResume(), confirmedJob()), 200)).get("analysis");
+
+        java.math.BigDecimal recomputed = java.math.BigDecimal.ZERO;
+        for (JsonNode category : analysis.get("categoryResults")) {
+            recomputed = recomputed.add(new java.math.BigDecimal(category.get("score").asString())
+                    .multiply(new java.math.BigDecimal(category.get("appliedWeight").asString())));
+        }
+
+        assertThat(new java.math.BigDecimal(analysis.get("totalMatchScore").asString()))
+                .isEqualByComparingTo(recomputed.setScale(1, java.math.RoundingMode.HALF_UP));
+    }
+
+    @Test
+    void theModelNeverSuppliedAnyOfTheNumbers() throws Exception {
+        JsonNode analysis = objectMapper.readTree(
+                analyse(analysisRequest(confirmedResume(), confirmedJob()), 200)).get("analysis");
+
+        assertThat(analysis.get("totalMatchScore")).isNotNull();
+        assertThat(analysis.get("totalMatchLabel").asString()).isNotBlank();
+        assertThat(analysis.get("applicationTier").asString()).isNotBlank();
+        assertThat(analysis.get("recommendation").asString()).isNotBlank();
+        assertThat(analysis.get("scoreConfidence").asString()).isNotBlank();
     }
 
     @Test
@@ -133,7 +162,7 @@ class AnalysisEndToEndTest {
         JsonNode response = objectMapper.readTree(analyse(analysisRequest(resume, confirmedJob()), 200));
 
         String resumeText = resume.get("rawText").asString().replaceAll("\\s+", " ").toLowerCase();
-        response.get("draft").get("requirementAssessments").forEach(assessment ->
+        response.get("analysis").get("requirementAssessments").forEach(assessment ->
                 assessment.get("evidence").forEach(evidence -> {
                     assertThat(evidence.get("grounded").asBoolean()).isTrue();
                     assertThat(resumeText)
@@ -186,7 +215,8 @@ class AnalysisEndToEndTest {
         JsonNode response = objectMapper.readTree(
                 analyse(analysisRequest(confirmed, confirmedJob()), 200));
 
-        response.get("draft").get("requirementAssessments").forEach(assessment ->
+        response.get("analysis").get("requirementAssessments").forEach(assessment ->
                 assertThat(assessment.get("status").asString()).isNotEqualTo("GAP"));
+        assertThat(response.get("analysis").get("scoringAdjustments")).isEmpty();
     }
 }

@@ -67,7 +67,7 @@ backend/    Spring Boot modular monolith
   jobposting/ pasted text, safe URL fetching, ATS extractors, browser rendering
   document/   review status, fingerprint, provenance, warnings, injection detection, PII redaction
   analysis/   provider boundary, prompt assets, output validation, evidence grounding
-  scoring/    rubric, category scorers, ceilings, tier policy  (phase 6)
+  scoring/    rubric, category scorers, ceilings, tier and confidence policies
   config/     properties, limits, CORS
 frontend/   Vite + React + TypeScript SPA
 docs/       product brief, version decisions

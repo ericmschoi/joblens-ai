@@ -3,6 +3,7 @@ package com.joblens.config;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -17,7 +18,7 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "joblens")
 public record JoblensProperties(
         @Valid Resume resume, @Valid JobPosting jobPosting, @Valid JobFetch jobFetch,
-        @Valid Cors cors, @Valid Analysis analysis) {
+        @Valid Cors cors, @Valid Analysis analysis, @Valid Scoring scoring) {
 
     public record Resume(
             @Positive long maxFileSizeBytes,
@@ -47,6 +48,16 @@ public record JoblensProperties(
                 Duration timeout,
                 @Positive int maxConcurrentRenders) {}
     }
+
+    /**
+     * Score ceilings for genuine core-required gaps. Configuration, never hardcoded in prompts or
+     * UI code, so the policy can be reviewed and changed in one place.
+     */
+    public record Scoring(
+            BigDecimal oneCoreGapCeiling,
+            BigDecimal twoCoreGapsCeiling,
+            BigDecimal threeOrMoreCoreGapsCeiling,
+            BigDecimal notEligibleCeiling) {}
 
     public record Cors(@NotEmpty List<String> allowedOrigins) {}
 

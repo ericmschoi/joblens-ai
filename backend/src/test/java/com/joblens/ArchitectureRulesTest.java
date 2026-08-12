@@ -27,6 +27,20 @@ class ArchitectureRulesTest {
             .should().notBeAnnotatedWith("org.springframework.beans.factory.annotation.Autowired")
             .because("constructor injection keeps collaborators explicit and testable");
 
+    /**
+     * Fit and opportunity are different questions, and the scoring engine must not be able to
+     * confuse them. A prestigious employer or a generous salary cannot reach the arithmetic.
+     */
+    @ArchTest
+    static final ArchRule scoringCannotSeeOpportunityValue = noClasses()
+            .that().resideInAPackage("com.joblens.scoring")
+            .and().haveSimpleNameEndingWith("Calculator")
+            .or().haveSimpleNameEndingWith("Scorer")
+            .or().haveSimpleNameEndingWith("Policy")
+            .should().dependOnClassesThat()
+            .haveFullyQualifiedName("com.joblens.analysis.model.OpportunityValue")
+            .because("how attractive a job is has nothing to do with whether this candidate fits it");
+
     @ArchTest
     static final ArchRule noConsoleOutput = noClasses()
             .should().accessField(System.class, "out")

@@ -91,7 +91,8 @@ public class AnalysisService {
                 grounded.draft().requirementAssessments().size(), grounded.groundedCount(),
                 grounded.droppedCount(), evidencePolicy, requirementPolicy, elapsedMs);
 
-        return new AnalysisResult(grounded.draft(), provider.id(), PromptTemplateService.PROMPT_VERSION,
+        return new AnalysisResult(grounded.draft(), resume.profile(), resume.warnings(),
+                resume.rawText().length(), provider.id(), PromptTemplateService.PROMPT_VERSION,
                 grounded.groundedCount(), grounded.droppedCount(), grounded.groundingFailureRatio(),
                 elapsedMs);
     }
