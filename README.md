@@ -2,11 +2,11 @@
 
 Compare a resume with a job posting and get an evidence-based, explainable fit analysis.
 
-> **Status: Phase 4b of 13.** The repository builds, tests and runs locally. A PDF resume and a job
+> **Status: Phase 5 of 13.** The repository builds, tests and runs locally. A PDF resume and a job
 > description — pasted, or read from a public URL — can be extracted, reviewed, corrected and
-> confirmed through the API, including postings on Greenhouse, Lever, Ashby and Workday. The
-> analysis itself, scoring and the UI are not implemented yet. Nothing in this README describes
-> behaviour that does not exist; unbuilt work is marked as planned.
+> confirmed, and the confirmed pair can be analysed end to end with no API key. Scoring and the UI
+> are not implemented yet. Nothing in this README describes behaviour that does not exist; unbuilt
+> work is marked as planned.
 
 ## What it does
 
@@ -226,7 +226,7 @@ is exercised with user-event.
 | 3 | Pasted job description extraction and normalization | **Done** |
 | 4a | Safe URL fetching, JSON-LD and generic HTML extraction | **Done** |
 | 4b | Applicant-tracking-system extractors and a controlled browser fallback | **Done** |
-| 5 | Versioned analysis schema, provider boundary, prompt assets, output validation | Planned |
+| 5 | Versioned analysis schema, provider boundary, prompt assets, output validation | **Done** |
 | 6 | Evidence mapping and the deterministic score calculator | Planned |
 | 7 | Upload, job input and extraction-review UI | Planned |
 | 8 | Results UI: score guide, accessible decimal stars, evidence, guidance | Planned |

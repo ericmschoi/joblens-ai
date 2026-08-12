@@ -1,16 +1,18 @@
 package com.joblens.analysis.provider;
 
+import com.joblens.analysis.AnalysisInput;
+
 /**
  * Provider-neutral boundary for fit analysis.
  *
- * <p>The domain must never depend on a vendor SDK type. Choosing a real runtime provider is a
- * separate decision from choosing hosting infrastructure, and it is deliberately deferred until the
- * evaluation harness has compared candidates on requirement-extraction accuracy, evidence
- * faithfulness, gap-versus-unknown classification, score stability, structured-output reliability,
- * latency and cost.
+ * <p>Providers return raw JSON text rather than typed objects. That is what a real model returns,
+ * and putting the parse and the validation on this side of the boundary means an adapter cannot
+ * quietly hand the domain something that never passed the contract.
  *
- * <p>The {@code analyze} operation is intentionally absent until the versioned analysis schema
- * exists, so that the contract is defined by the schema rather than by whichever vendor lands first.
+ * <p>The domain must never depend on a vendor SDK type. Choosing a runtime provider is a separate
+ * decision from choosing hosting, and it stays deferred until the evaluation harness has compared
+ * candidates on requirement-extraction accuracy, evidence faithfulness, gap-versus-unknown
+ * classification, score stability, structured-output reliability, latency and cost.
  */
 public interface AnalysisProvider {
 
@@ -25,4 +27,10 @@ public interface AnalysisProvider {
      * be able to run end to end with a provider that answers {@code false}.
      */
     boolean sendsContentOffHost();
+
+    /**
+     * @return JSON matching the analysis draft contract. It is validated before use; a provider is
+     *         not trusted to have produced something well formed.
+     */
+    String analyze(AnalysisInput input, String systemPrompt, String userPrompt);
 }

@@ -65,9 +65,8 @@ backend/    Spring Boot modular monolith
   api/        thin controllers, DTOs, RFC 9457 problem details
   resume/     PDF validation, extraction, normalization
   jobposting/ pasted text, safe URL fetching, ATS extractors, browser rendering
-  document/   review status, fingerprint, provenance, warnings, injection detection;
-              PII redaction (phase 5)
-  analysis/   provider boundary, prompt assets, output validation (phase 5)
+  document/   review status, fingerprint, provenance, warnings, injection detection, PII redaction
+  analysis/   provider boundary, prompt assets, output validation, evidence grounding
   scoring/    rubric, category scorers, ceilings, tier policy  (phase 6)
   config/     properties, limits, CORS
 frontend/   Vite + React + TypeScript SPA
