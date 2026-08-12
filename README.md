@@ -2,7 +2,7 @@
 
 Compare a resume with a job posting and get an evidence-based, explainable fit analysis.
 
-> **Status: Phase 11 of 13.** The product works end to end locally with no API key: upload a PDF
+> **Status: Phase 12 of 13.** The product works end to end locally with no API key: upload a PDF
 > resume, add a job description by URL or paste, review and correct both, and read a scored,
 > evidence-backed analysis. Packaging, CI and deployment are what remain. Nothing in this README
 > describes behaviour that does not exist; unbuilt work is marked as planned.
@@ -175,7 +175,8 @@ curl -s -X POST http://localhost:8080/api/v1/job-descriptions/extract -H 'Conten
 ```
 
 That runs the backend build and tests, then the frontend typecheck, lint, tests and production
-build. Individually:
+build — the same three things [CI](docs/ci.md) runs on every pull request, plus the container image
+builds. Individually:
 
 ```bash
 cd backend && ./gradlew build
@@ -275,7 +276,7 @@ is exercised with user-event.
 | 9 | End-to-end hardening, calibration fixtures, documentation | **Done** |
 | 10 | Provider evaluation harness and acceptance criteria | **Done** |
 | 11 | Docker packaging | **Done** |
-| 12 | GitHub Actions CI/CD | Planned |
+| 12 | GitHub Actions CI | **Done** |
 | 13 | AWS architecture and deployment | Planned |
 
 ## Why I am building this
