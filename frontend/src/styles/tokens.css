@@ -24,6 +24,11 @@
   --color-warning: #8a5300;
   --color-success: #1c6b3c;
 
+  /* Progress. Separate from --color-danger on purpose: the same red, a different meaning, and one
+     place to change if "how far you have come" should stop being red. */
+  --color-progress-done: #c0281f;
+  --color-progress-todo: #7b8592;
+
   /* Spacing scale */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -65,5 +70,8 @@
     --color-danger: #ff9d95;
     --color-warning: #f0bd6b;
     --color-success: #82d3a3;
+
+    --color-progress-done: #f2645a;
+    --color-progress-todo: #6b7684;
   }
 }

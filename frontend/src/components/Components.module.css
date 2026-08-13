@@ -134,29 +134,149 @@
   margin-top: var(--space-6);
 }
 
+/*
+ * The wizard's progress bar.
+ *
+ * A filled track behind numbered markers. Filled means behind you, grey means ahead of you, and the
+ * step you are on carries a caret pointing at it so the position reads at a glance rather than
+ * having to be inferred from where the colour stops.
+ */
+.progress {
+  margin-bottom: var(--space-8);
+}
+
 .steps {
+  --marker-size: 2rem;
+  --track-thickness: 3px;
+
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin: 0 0 var(--space-8);
+  align-items: flex-start;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.stepItem {
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+/* Replaces the per-step labels on a narrow screen; see the media query below. */
+.currentSummary {
+  display: none;
+  margin: var(--space-3) 0 0;
+  text-align: center;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.step {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  text-align: center;
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
 }
 
-.stepCurrent {
-  border-color: var(--color-accent);
+/* The segment joining this marker to the one before it. Its colour is this step's state: the
+   track is filled up to wherever you have reached. */
+.step + .step::before {
+  content: '';
+  position: absolute;
+  top: calc(var(--space-2) + var(--marker-size) / 2 - var(--track-thickness) / 2);
+  right: 50%;
+  left: -50%;
+  height: var(--track-thickness);
+  border-radius: 999px;
+  background-color: var(--color-progress-todo);
+}
+
+.done + .step::before,
+.current::before,
+.done::before {
+  background-color: var(--color-progress-done);
+}
+
+.stepMarker {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: var(--marker-size);
+  height: var(--marker-size);
+  border: 2px solid var(--color-progress-todo);
+  border-radius: 50%;
+  background-color: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.stepLabel {
+  overflow-wrap: anywhere;
+}
+
+.done .stepMarker {
+  border-color: var(--color-progress-done);
+  background-color: var(--color-progress-done);
+  color: var(--color-surface);
+}
+
+.done .stepLabel {
+  color: var(--color-progress-done);
+}
+
+.current .stepMarker {
+  border-color: var(--color-progress-done);
+  border-width: 3px;
+  color: var(--color-progress-done);
+  /* A ring in the page's own background, so the current marker reads as raised off the track. */
+  box-shadow: 0 0 0 4px var(--color-surface);
+}
+
+/* The caret that points at the step you are on. */
+.current .stepMarker::before {
+  content: '';
+  position: absolute;
+  top: calc(-1 * var(--space-3));
+  border: 5px solid transparent;
+  border-top-color: var(--color-progress-done);
+}
+
+.current .stepLabel {
   color: var(--color-text);
   font-weight: 600;
 }
 
-.stepDone {
-  color: var(--color-success);
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* On a narrow screen five labels cannot share a row legibly. The bar and the current step's label
+   stay; the rest are hidden from sight only, so nothing is lost to a screen reader. */
+@media (max-width: 34rem) {
+  .steps {
+    --marker-size: 1.75rem;
+  }
+
+  .stepLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .currentSummary {
+    display: block;
+  }
 }

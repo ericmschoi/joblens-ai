@@ -64,6 +64,16 @@ const TEXT_PAIRS: ReadonlyArray<readonly [foreground: string, background: string
   ['--color-danger', '--color-surface'],
   ['--color-warning', '--color-surface'],
   ['--color-success', '--color-surface'],
+  // The progress bar labels a finished step in this colour, so it is body text, not decoration.
+  ['--color-progress-done', '--color-surface'],
+  ['--color-progress-done', '--color-surface-raised'],
+];
+
+/** Boundaries and indicators carry no text, and WCAG 2.2 asks 3:1 of them rather than 4.5:1. */
+const NON_TEXT_PAIRS: ReadonlyArray<readonly [foreground: string, background: string]> = [
+  ['--color-progress-todo', '--color-surface'],
+  ['--color-progress-todo', '--color-surface-raised'],
+  ['--color-progress-done', '--color-surface'],
 ];
 
 describe.each(['light', 'dark'] as const)('%s colour scheme', (scheme) => {
@@ -78,6 +88,17 @@ describe.each(['light', 'dark'] as const)('%s colour scheme', (scheme) => {
 
     const ratio = contrastRatio(foregroundValue as string, backgroundValue as string);
     expect(Number(ratio.toFixed(2))).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it.each(NON_TEXT_PAIRS)('%s on %s meets AA contrast for a UI indicator', (foreground, background) => {
+    const foregroundValue = tokens.get(foreground);
+    const backgroundValue = tokens.get(background);
+
+    expect(foregroundValue, `${foreground} is missing`).toBeDefined();
+    expect(backgroundValue, `${background} is missing`).toBeDefined();
+
+    const ratio = contrastRatio(foregroundValue as string, backgroundValue as string);
+    expect(Number(ratio.toFixed(2))).toBeGreaterThanOrEqual(3);
   });
 
   it('uses a focus indicator that meets the non-text contrast minimum', () => {
