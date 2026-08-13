@@ -191,10 +191,47 @@ describe('the wizard', () => {
     render(<App />);
 
     const progress = screen.getByRole('list', { name: 'Progress' });
-    expect(within(progress).getByText('1. Resume')).toHaveAttribute('aria-current', 'step');
+    expect(within(progress).getByRole('listitem', { current: 'step' })).toHaveTextContent('Resume');
 
     await uploadAResume(userEvent.setup());
-    expect(within(progress).getByText(/2\. Review resume/)).toHaveAttribute('aria-current', 'step');
+    expect(within(progress).getByRole('listitem', { current: 'step' }))
+      .toHaveTextContent('Review resume');
+  });
+
+  it('states each step\'s position and status in text, not only in colour', async () => {
+    stubApi(ALL_ENDPOINTS);
+    render(<App />);
+    await uploadAResume(userEvent.setup());
+
+    const steps = within(screen.getByRole('list', { name: 'Progress' })).getAllByRole('listitem');
+
+    expect(steps).toHaveLength(5);
+    expect(steps[0]).toHaveTextContent('Resume — step 1 of 5, done');
+    expect(steps[1]).toHaveTextContent('Review resume — step 2 of 5, current step');
+    expect(steps[4]).toHaveTextContent('Analysis — step 5 of 5, not started');
+  });
+
+  it('marks exactly one step as current at a time', async () => {
+    stubApi(ALL_ENDPOINTS);
+    render(<App />);
+    await uploadAResume(userEvent.setup());
+
+    const steps = within(screen.getByRole('list', { name: 'Progress' })).getAllByRole('listitem');
+
+    expect(steps.filter((step) => step.getAttribute('aria-current') === 'step')).toHaveLength(1);
+  });
+
+  it('shows a finished step as ticked and an unreached one as its number', async () => {
+    stubApi(ALL_ENDPOINTS);
+    render(<App />);
+    await uploadAResume(userEvent.setup());
+
+    const steps = within(screen.getByRole('list', { name: 'Progress' })).getAllByRole('listitem');
+
+    // The marker is hidden from assistive technology; it is the visual half of the same statement.
+    expect(steps[0]?.firstElementChild).toHaveTextContent('✓');
+    expect(steps[1]?.firstElementChild).toHaveTextContent('2');
+    expect(steps[4]?.firstElementChild).toHaveTextContent('5');
   });
 
   it('has no detectable accessibility violations on the first step', async () => {
