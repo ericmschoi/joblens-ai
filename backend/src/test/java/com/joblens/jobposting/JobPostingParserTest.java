@@ -118,12 +118,176 @@ class JobPostingParserTest {
         assertThat(parsed.posting().preferredQualifications()).isEmpty();
     }
 
+
+    /**
+     * The header used to be read by position: first line the title, second line split on a dash into
+     * a company and a location. A posting that labels its own fields, or whose role contains a dash,
+     * defeated that completely — "Junior–Intermediate Software Engineer (Full Stack)" was reported
+     * as a company called "Junior" in a place called "Intermediate Software Engineer (Full Stack)".
+     */
+    @Nested
+    class HeaderFields {
+
+        @Test
+        void takesTheFieldsThePostingLabelsItself() {
+            JobPosting posting = parse(JobPostingFixtures.LABELLED_HEADER).posting();
+
+            assertThat(posting.title()).isEqualTo("Junior\u2013Intermediate Software Engineer (Full Stack)");
+            assertThat(posting.company()).isEqualTo("Qualifacts");
+            assertThat(posting.location()).isEqualTo("Remote / Hybrid (Canada)");
+        }
+
+        @Test
+        void neverReportsALabelAsTheJobTitle() {
+            JobPosting posting = parse(JobPostingFixtures.LABELLED_HEADER).posting();
+
+            assertThat(posting.title()).doesNotContain("Job Description");
+        }
+
+        @Test
+        void doesNotSplitARoleThatHappensToContainADash() {
+            JobPosting posting = parse("""
+                    Junior\u2013Intermediate Software Engineer (Full Stack)
+                    Qualifacts\u2014Remote / Hybrid (Canada)
+
+                    Required Qualifications
+                    - Strong TypeScript
+                    - Experience with React
+                    """).posting();
+
+            assertThat(posting.title()).isEqualTo("Junior\u2013Intermediate Software Engineer (Full Stack)");
+            assertThat(posting.company()).isEqualTo("Qualifacts");
+            assertThat(posting.location()).isEqualTo("Remote / Hybrid (Canada)");
+        }
+
+        @Test
+        void leavesTheCompanyBlankRatherThanNamingItAfterAJobTitle() {
+            JobPosting posting = parse("""
+                    Software Engineer
+                    Senior\u2013Staff level, engineering
+
+                    Required Qualifications
+                    - Strong TypeScript
+                    - Experience with React
+                    """).posting();
+
+            assertThat(posting.title()).isEqualTo("Software Engineer");
+            assertThat(posting.company())
+                    .as("a blank field is something the review step can fix; a wrong one reads as a fact")
+                    .isNull();
+            assertThat(posting.location()).isNull();
+        }
+
+        @Test
+        void refusesToTreatAParagraphAsATitle() {
+            String paragraph = "We are a fast growing company looking for someone exceptional to join "
+                    + "our team and help us build the future of healthcare software for clinicians "
+                    + "everywhere, working across the whole stack every single day of the week.";
+
+            assertThat(parse(paragraph + "\n\nRequired Qualifications\n- Strong TypeScript\n- React")
+                    .posting().title())
+                    .satisfiesAnyOf(
+                            title -> assertThat(title).isNull(),
+                            title -> assertThat(title).hasSizeLessThanOrEqualTo(120));
+        }
+    }
+
+    /**
+     * Workday's schema.org description arrives with every line break already stripped by the site,
+     * and a user pasting from a PDF viewer produces the same thing. Read literally that is a posting
+     * with no requirements at all, which would leave the analysis nothing to score against.
+     */
+    @Nested
+    class PostingFlattenedByItsSource {
+
+        private final ParsedJobPosting parsed = parse(JobPostingFixtures.FLATTENED_BY_THE_SOURCE);
+
+        @Test
+        void readsTheLabelledHeaderOutOfTheRun() {
+            JobPosting posting = parsed.posting();
+
+            assertThat(posting.title()).isEqualTo("Junior\u2013Intermediate Software Engineer (Full Stack)");
+            assertThat(posting.company()).isEqualTo("Qualifacts");
+            assertThat(posting.location()).isEqualTo("Remote / Hybrid (Canada)");
+        }
+
+        @Test
+        void findsTheSectionsThatTheFlatteningHid() {
+            JobPosting posting = parsed.posting();
+
+            assertThat(posting.responsibilities()).isNotEmpty();
+            assertThat(posting.requiredQualifications()).isNotEmpty();
+            assertThat(posting.preferredQualifications()).isNotEmpty();
+        }
+
+        @Test
+        void splitsTheRequirementsIntoTheItemsTheEmployerWrote() {
+            assertThat(parsed.posting().requiredQualifications())
+                    .contains("Experience building full-stack web applications")
+                    .contains("Proficiency with JavaScript/TypeScript")
+                    .anySatisfy(item -> assertThat(item).contains("0-2 years"));
+        }
+
+        @Test
+        void keepsRequiredAndPreferredApart() {
+            JobPosting posting = parsed.posting();
+
+            assertThat(posting.preferredQualifications())
+                    .anySatisfy(item -> assertThat(item).contains("AI/ML integrations"));
+            assertThat(posting.requiredQualifications())
+                    .noneSatisfy(item -> assertThat(item).contains("AI/ML integrations"));
+        }
+
+        @Test
+        void doesNotLeaveTheQualifierOfAHeadingBehindAsARequirement() {
+            // "Qualifications Required 0-2 years …" is one heading, not a heading and a requirement.
+            assertThat(parsed.posting().requiredQualifications())
+                    .noneMatch(item -> item.equalsIgnoreCase("required"));
+        }
+
+        @Test
+        void neverBreaksAPhraseThatOnlyLooksLikeANewItem() {
+            assertThat(parsed.posting().requiredQualifications())
+                    .allSatisfy(item -> assertThat(item.strip())
+                            .as("an item starting mid-phrase means a break was made in the wrong place")
+                            .doesNotStartWith("with ")
+                            .doesNotStartWith("and ")
+                            .doesNotStartWith("or "));
+        }
+
+        @Test
+        void changesNoWordOfTheposting() {
+            String joined = String.join(" ", parsed.posting().responsibilities()) + " "
+                    + String.join(" ", parsed.posting().requiredQualifications()) + " "
+                    + String.join(" ", parsed.posting().preferredQualifications());
+
+            // Recovery may only insert breaks. Anything it emitted has to be in the source verbatim.
+            for (String item : parsed.posting().requiredQualifications()) {
+                assertThat(JobPostingFixtures.FLATTENED_BY_THE_SOURCE).contains(item);
+            }
+            assertThat(joined).contains("Proficiency with JavaScript/TypeScript");
+        }
+
+        @Test
+        void tellsTheUserThatTheStructureWasRecovered() {
+            assertThat(codesOf(parsed))
+                    .as("a recovered structure is a guess about someone else's formatting")
+                    .contains(WarningCode.STRUCTURE_RECOVERED_FROM_CONTINUOUS_TEXT);
+        }
+
+        @Test
+        void saysNothingAboutRecoveryWhenThePostingArrivedIntact() {
+            assertThat(codesOf(parse(JobPostingFixtures.WELL_STRUCTURED)))
+                    .doesNotContain(WarningCode.STRUCTURE_RECOVERED_FROM_CONTINUOUS_TEXT);
+        }
+    }
+
     @Test
     void reportsEveryStructuralFailureForContinuousProse() {
         ParsedJobPosting parsed = parse(JobPostingFixtures.PLAIN_PROSE);
 
         assertThat(codesOf(parsed)).contains(
-                WarningCode.NO_SECTIONS_DETECTED,
+                WarningCode.NO_POSTING_SECTIONS_DETECTED,
                 WarningCode.NO_QUALIFICATION_SECTIONS_DETECTED,
                 WarningCode.NO_RESPONSIBILITIES_DETECTED);
         assertThat(parsed.posting().requiredQualifications()).isEmpty();

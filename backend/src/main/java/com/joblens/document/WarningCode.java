@@ -31,6 +31,13 @@ public enum WarningCode {
     UNASSIGNED_TEXT_BLOCKS(Severity.WARNING,
             "Some text could not be attached to a section. It is still in the full text below, "
                     + "but it is missing from the structured view."),
+    NO_POSTING_SECTIONS_DETECTED(Severity.HIGH,
+            "No standard job posting sections were recognised, so the structured view below may be "
+                    + "incomplete. The full text was still extracted."),
+    STRUCTURE_RECOVERED_FROM_CONTINUOUS_TEXT(Severity.HIGH,
+            "This posting arrived as one continuous block of text with no line breaks, so JobLens "
+                    + "worked out where the sections and list items begin. No wording was changed, "
+                    + "but check the split below before continuing."),
     NO_QUALIFICATION_SECTIONS_DETECTED(Severity.HIGH,
             "No requirements or qualifications section was recognised in this posting. "
                     + "Check the full text and add what the role actually requires."),
